@@ -29,7 +29,7 @@ export const SignInView: React.FC = () => {
       if (err.code === 'auth/popup-closed-by-user') {
         setErrorMessage('Sign-in window was closed. Please try again or continue as guest.');
       } else if (err.code === 'auth/popup-blocked') {
-        setErrorMessage('Pop-up was blocked. If you are in a preview iframe, please use "Continue as Guest".');
+        setErrorMessage('Pop-up was blocked. To sign in with Google, click the "Open App in New Tab" icon (↗) at the top right of this preview window, or use "Continue as Guest".');
       } else {
         setErrorMessage('Failed to sign in. Please try again or use "Continue as Guest".');
       }
