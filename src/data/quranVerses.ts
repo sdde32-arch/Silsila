@@ -1,0 +1,665 @@
+export interface QuranWord {
+  id: number;
+  arabic: string;
+  transliteration: string;
+  translation: string;
+}
+
+export interface AyahDetail {
+  number: number;
+  arabic: string;
+  transliteration: string;
+  translation: string;
+  words: QuranWord[];
+  audioUrl?: string;
+  isMemorized?: boolean;
+}
+
+export interface SurahContent {
+  number: number;
+  name: string;
+  transliteration: string;
+  arabicName: string;
+  translation: string;
+  totalAyahs: number;
+  revelationType: 'Meccan' | 'Medinan';
+  juzNumber: number;
+  pageNumber: number;
+  background: string;
+  thematicPillars: string[];
+  ayahs: AyahDetail[];
+}
+
+export const SURAH_CONTENT_DB: Record<number, SurahContent> = {
+  1: {
+    number: 1,
+    name: 'Al-Fatihah',
+    transliteration: 'Al-Fātiḥah',
+    arabicName: 'سُورَةُ الفَاتِحَة',
+    translation: 'The Opening',
+    totalAyahs: 7,
+    revelationType: 'Meccan',
+    juzNumber: 1,
+    pageNumber: 1,
+    background:
+      'Revealed in Makkah, Al-Fatihah serves as the foundational opening of the Quran and the indispensable pillar of every Salah. It establishes the categories of Tawhid and teaches how to ask for guidance.',
+    thematicPillars: ['Praise of Allah', 'Sovereignty of the Day of Recompense', 'Pure Sincere Worship', 'The Straight Path'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ',
+        transliteration: 'Bismil laahir Rahmaanir Raheem',
+        translation: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
+        words: [
+          { id: 1, arabic: 'بِسْمِ', transliteration: 'Bismi', translation: 'In (the) name' },
+          { id: 2, arabic: 'ٱللَّهِ', transliteration: 'Allāh', translation: '(of) Allah' },
+          { id: 3, arabic: 'ٱلرَّحْمَـٰنِ', transliteration: 'ar-Raḥmān', translation: 'the Entirely Merciful' },
+          { id: 4, arabic: 'ٱلرَّحِيمِ', transliteration: 'ar-Raḥīm', translation: 'the Especially Merciful' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 2,
+        arabic: 'ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ',
+        transliteration: 'Alhamdu lillaahi Rabbil \'aalameen',
+        translation: '[All] praise is [due] to Allah, Lord of the worlds -',
+        words: [
+          { id: 1, arabic: 'ٱلْحَمْدُ', transliteration: 'al-Ḥamdu', translation: '[All] the praise' },
+          { id: 2, arabic: 'لِلَّهِ', transliteration: 'lillāh', translation: '(is) for Allah' },
+          { id: 3, arabic: 'رَبِّ', transliteration: 'Rabbi', translation: 'Lord' },
+          { id: 4, arabic: 'ٱلْعَـٰلَمِينَ', transliteration: 'al-ʿĀlamīn', translation: '(of) the worlds' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 3,
+        arabic: 'ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ',
+        transliteration: 'Ar-Rahmaanir Raheem',
+        translation: 'The Entirely Merciful, the Especially Merciful,',
+        words: [
+          { id: 1, arabic: 'ٱلرَّحْمَـٰنِ', transliteration: 'ar-Raḥmān', translation: 'The Entirely Merciful' },
+          { id: 2, arabic: 'ٱلرَّحِيمِ', transliteration: 'ar-Raḥīm', translation: 'the Especially Merciful' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 4,
+        arabic: 'مَـٰلِكِ يَوْمِ ٱلدِّينِ',
+        transliteration: 'Maaliki Yawmid Deen',
+        translation: 'Sovereign of the Day of Recompense.',
+        words: [
+          { id: 1, arabic: 'مَـٰلِكِ', transliteration: 'Māliki', translation: 'Master / Sovereign' },
+          { id: 2, arabic: 'يَوْمِ', transliteration: 'Yawmi', translation: '(of the) Day' },
+          { id: 3, arabic: 'ٱلدِّينِ', transliteration: 'ad-Dīn', translation: '(of) Recompense / Judgment' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 5,
+        arabic: 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ',
+        transliteration: 'Iyyaaka na\'budu wa lyyaaka nasta\'een',
+        translation: 'It is You we worship and You we ask for help.',
+        words: [
+          { id: 1, arabic: 'إِيَّاكَ', transliteration: 'Iyyāka', translation: 'You alone' },
+          { id: 2, arabic: 'نَعْبُدُ', transliteration: 'naʿbudu', translation: 'we worship' },
+          { id: 3, arabic: 'وَإِيَّاكَ', transliteration: 'wa-iyyāka', translation: 'and You alone' },
+          { id: 4, arabic: 'نَسْتَعِينُ', transliteration: 'nastaʿīn', translation: 'we ask for help' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 6,
+        arabic: 'ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ',
+        transliteration: 'Ihdinas Siraatal Mustaqeem',
+        translation: 'Guide us to the straight path -',
+        words: [
+          { id: 1, arabic: 'ٱهْدِنَا', transliteration: 'Ihdinā', translation: 'Guide us' },
+          { id: 2, arabic: 'ٱلصِّرَٰطَ', transliteration: 'aṣ-Ṣirāṭa', translation: '(to) the path' },
+          { id: 3, arabic: 'ٱلْمُسْتَقِيمَ', transliteration: 'al-Mustaqīm', translation: 'the straight' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 7,
+        arabic: 'صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ',
+        transliteration: 'Siraatal lazeena an\'amta \'alayhim ghayril maghdoobi \'alayhim wa lad daaalleen',
+        translation: 'The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.',
+        words: [
+          { id: 1, arabic: 'صِرَٰطَ', transliteration: 'Ṣirāṭa', translation: 'The path' },
+          { id: 2, arabic: 'ٱلَّذِينَ', transliteration: 'alladhīna', translation: '(of) those' },
+          { id: 3, arabic: 'أَنْعَمْتَ', transliteration: 'anʿamta', translation: 'You bestowed favor' },
+          { id: 4, arabic: 'عَلَيْهِمْ', transliteration: 'ʿalayhim', translation: 'upon them' },
+          { id: 5, arabic: 'غَيْرِ', transliteration: 'ghayri', translation: 'not (of)' },
+          { id: 6, arabic: 'ٱلْمَغْضُوبِ', transliteration: 'al-maghḍūbi', translation: 'those who earned anger' },
+          { id: 7, arabic: 'عَلَيْهِمْ', transliteration: 'ʿalayhim', translation: 'upon them' },
+          { id: 8, arabic: 'وَلَا', transliteration: 'wa-lā', translation: 'and not' },
+          { id: 9, arabic: 'ٱلضَّآلِّينَ', transliteration: 'aḍ-ḍāllīn', translation: 'those who are astray' },
+        ],
+        isMemorized: true,
+      },
+    ],
+  },
+  6: {
+    number: 6,
+    name: "Al-An'am",
+    transliteration: "Al-An'aam",
+    arabicName: 'سُورَةُ الأَنْعَام',
+    translation: 'The Cattle',
+    totalAyahs: 165,
+    revelationType: 'Meccan',
+    juzNumber: 8,
+    pageNumber: 128,
+    background:
+      'This Surah takes its name from vv. 136, 138 and 139 in which some superstitious beliefs of the idolatrous Arabs concerning the lawfulness of some cattle (an`am) and the unlawfulness of some others have been refuted.',
+    thematicPillars: ['Monotheism (Tawhid)', 'Cosmic Signs of Creation', 'Refutation of Idolatry', 'The Prophetic Lineage of Ibrahim'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'ٱلْحَمْدُ لِلَّهِ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ وَجَعَلَ ٱلظُّلُمَـٰتِ وَٱلنُّورَ ۖ ثُمَّ ٱلَّذِينَ كَفَرُوا۟ بِرَبِّهِمْ يَعْدِلُونَ',
+        transliteration: 'Alhamdu lillaahil lazee khalaqas samaawaati wal arda wa ja\'alaz zulumaati wannoor; summal lazeena kafaroo bi Rabbihim ya\'diloon',
+        translation: '[All] praise is [due] to Allah, who created the heavens and the earth and made the darkness and the light. Then those who disbelieve equate [others] with their Lord.',
+        words: [
+          { id: 1, arabic: 'ٱلْحَمْدُ', transliteration: 'Al-ḥamdu', translation: '[All] praise' },
+          { id: 2, arabic: 'لِلَّهِ', transliteration: 'lillāh', translation: '(is) for Allah' },
+          { id: 3, arabic: 'ٱلَّذِى', transliteration: 'alladhī', translation: 'who' },
+          { id: 4, arabic: 'خَلَقَ', transliteration: 'khalaqa', translation: 'created' },
+          { id: 5, arabic: 'ٱلسَّمَـٰوَٰتِ', transliteration: 'as-samāwāti', translation: 'the heavens' },
+          { id: 6, arabic: 'وَٱلْأَرْضَ', transliteration: 'wal-arḍ', translation: 'and the earth' },
+          { id: 7, arabic: 'وَجَعَلَ', transliteration: 'wa-jaʿala', translation: 'and made' },
+          { id: 8, arabic: 'ٱلظُّلُمَـٰتِ', transliteration: 'aẓ-ẓulumāti', translation: 'the darknesses' },
+          { id: 9, arabic: 'وَٱلنُّورَ', transliteration: 'wan-nūr', translation: 'and the light' },
+        ],
+      },
+      {
+        number: 2,
+        arabic: 'هُوَ ٱلَّذِى خَلَقَكُم مِّن طِينٍ ثُمَّ قَضَىٰٓ أَجَلًا ۖ وَأَجَلٌ مُّسَمًّى عِندَهُۥ ۖ ثُمَّ أَنتُمْ تَمْتَرُونَ',
+        transliteration: 'Huwal lazee khalaqakum min teenin summa qadaaa ajalanw wa ajalum musamman \'indahoo summa antum tamtaroon',
+        translation: 'It is He who created you from clay and then decreed a term and a specified time [known] to Him; then [still] you are in dispute.',
+        words: [
+          { id: 1, arabic: 'هُوَ', transliteration: 'Huwa', translation: 'He' },
+          { id: 2, arabic: 'ٱلَّذِى', transliteration: 'alladhī', translation: 'who' },
+          { id: 3, arabic: 'خَلَقَكُم', transliteration: 'khalaqakum', translation: 'created you' },
+          { id: 4, arabic: 'مِّن', transliteration: 'min', translation: 'from' },
+          { id: 5, arabic: 'طِينٍ', transliteration: 'ṭīn', translation: 'clay' },
+          { id: 6, arabic: 'ثُمَّ', transliteration: 'thumma', translation: 'then' },
+          { id: 7, arabic: 'قَضَىٰٓ', transliteration: 'qaḍā', translation: 'decreed' },
+          { id: 8, arabic: 'أَجَلًا', transliteration: 'ajalan', translation: 'a term' },
+        ],
+      },
+      {
+        number: 3,
+        arabic: 'وَهُوَ ٱللَّهُ فِى ٱلسَّمَـٰوَٰتِ وَفِى ٱلْأَرْضِ ۖ يَعْلَمُ سِرَّكُمْ وَجَهْرَكُمْ وَيَعْلَمُ مَا تَكْسِبُونَ',
+        transliteration: 'Wa huwal laahu fis samaawaati wa fil ardi ya\'lamu sirrakum wa jahrakum wa ya\'lamu maa taksiboon',
+        translation: 'And He is Allah, [the only deity] in the heavens and the earth. He knows your secret and what you make public, and He knows that which you earn.',
+        words: [
+          { id: 1, arabic: 'وَهُوَ', transliteration: 'Wa-huwa', translation: 'And He' },
+          { id: 2, arabic: 'ٱللَّهُ', transliteration: 'Allāh', translation: '(is) Allah' },
+          { id: 3, arabic: 'فِى', transliteration: 'fī', translation: 'in' },
+          { id: 4, arabic: 'ٱلسَّمَـٰوَٰتِ', transliteration: 'as-samāwāti', translation: 'the heavens' },
+          { id: 5, arabic: 'وَفِى', transliteration: 'wa-fī', translation: 'and in' },
+          { id: 6, arabic: 'ٱلْأَرْضِ', transliteration: 'al-arḍ', translation: 'the earth' },
+        ],
+      },
+      {
+        number: 4,
+        arabic: 'وَمَا تَأْتِيهِم مِّنْ ءَايَةٍ مِّنْ ءَايَـٰتِ رَبِّهِمْ إِلَّا كَانُوا۟ عَنْهَا مُعْرِضِينَ',
+        transliteration: 'Wa maa ta\'teehim min aayatim min Aayaati Rabbihim illaa kaanoo \'anhaa mu\'rideen',
+        translation: 'And no sign comes to them from the signs of their Lord except that they turn away from it.',
+        words: [
+          { id: 1, arabic: 'وَمَا', transliteration: 'Wa-mā', translation: 'And not' },
+          { id: 2, arabic: 'تَأْتِيهِم', transliteration: 'taʾtīhim', translation: 'comes to them' },
+          { id: 3, arabic: 'مِّنْ', transliteration: 'min', translation: 'of' },
+          { id: 4, arabic: 'ءَايَةٍ', transliteration: 'āyah', translation: 'a sign' },
+          { id: 5, arabic: 'مِّنْ', transliteration: 'min', translation: 'from' },
+          { id: 6, arabic: 'ءَايَـٰتِ', transliteration: 'āyāti', translation: '(the) signs' },
+          { id: 7, arabic: 'رَبِّهِمْ', transliteration: 'Rabbihim', translation: '(of) their Lord' },
+        ],
+      },
+      {
+        number: 5,
+        arabic: 'فَقَدْ كَذَّبُوا۟ بِٱلْحَقِّ لَمَّا جَآءَهُمْ ۖ فَسَوْفَ يَأْتِيهِمْ أَنۢبَـٰٓؤُا۟ مَا كَانُوا۟ بِهِۦ يَسْتَهْزِءُونَ',
+        transliteration: 'Faqad kazzaboo bilhaqqi lammaa jaaa\'ahum fasawfa ya\'teehim ambaaa\'u maa kaanoo bihee yastahzi\'oon',
+        translation: 'For they had denied the truth when it came to them, but there is going to reach them the news of what they used to ridicule.',
+        words: [
+          { id: 1, arabic: 'فَقَدْ', transliteration: 'Fa-qad', translation: 'For surely' },
+          { id: 2, arabic: 'كَذَّبُوا۟', transliteration: 'kadhdhabū', translation: 'they denied' },
+          { id: 3, arabic: 'بِٱلْحَقِّ', transliteration: 'bil-ḥaqq', translation: 'the truth' },
+          { id: 4, arabic: 'لَمَّا', transliteration: 'lammā', translation: 'when' },
+          { id: 5, arabic: 'جَآءَهُمْ', transliteration: 'jāʾahum', translation: 'it came to them' },
+        ],
+      },
+    ],
+  },
+  67: {
+    number: 67,
+    name: 'Al-Mulk',
+    transliteration: 'Al-Mulk',
+    arabicName: 'سُورَةُ المُلْك',
+    translation: 'The Sovereignty',
+    totalAyahs: 30,
+    revelationType: 'Meccan',
+    juzNumber: 29,
+    pageNumber: 562,
+    background:
+      'Revealed in Makkah, this Surah is known as "The Protector" and "The Savior" as it protects from the punishment of the grave. It emphasizes Allah\'s supreme dominion, the beauty of cosmic design, and the purpose of life and death as a test.',
+    thematicPillars: ['Divine Sovereignty', 'Perfection of Cosmic Creation', 'Protection from Punishment', 'The Flocks of Birds & Sustenance'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'تَبَـٰرَكَ ٱلَّذِى بِيَدِهِ ٱلْمُلْكُ وَهُوَ عَلَىٰ كُلِّ شَىْءٍۢ قَدِيرٌ',
+        transliteration: 'Tabaarakal lazee biyadihil mulku wa huwa \'alaa kulli shai\'in Qadeer',
+        translation: 'Blessed is He in whose hand is dominion, and He is over all things competent -',
+        words: [
+          { id: 1, arabic: 'تَبَـٰرَكَ', transliteration: 'Tabāraka', translation: 'Blessed is' },
+          { id: 2, arabic: 'ٱلَّذِى', transliteration: 'alladhī', translation: 'He who' },
+          { id: 3, arabic: 'بِيَدِهِ', transliteration: 'bi-yadihi', translation: 'in whose hand (is)' },
+          { id: 4, arabic: 'ٱلْمُلْكُ', transliteration: 'al-mulk', translation: 'the dominion' },
+          { id: 5, arabic: 'وَهُوَ', transliteration: 'wa-huwa', translation: 'and He' },
+          { id: 6, arabic: 'عَلَىٰ', transliteration: 'ʿalā', translation: 'over' },
+          { id: 7, arabic: 'كُلِّ', transliteration: 'kulli', translation: 'all' },
+          { id: 8, arabic: 'شَىْءٍۢ', transliteration: 'shayʾin', translation: 'things' },
+          { id: 9, arabic: 'قَدِيرٌ', transliteration: 'Qadīr', translation: 'Competent' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 2,
+        arabic: 'ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًۭا ۚ وَهُوَ ٱلْعَزِيزُ ٱلْغَفُورُ',
+        transliteration: 'Allazee khalaqal mawta walhayaata liyabluwakum ayyukum ahsanu \'amalaa; wa huwal \'Azeezul Ghafoor',
+        translation: '[He] who created death and life to test you [as to] which of you is best in deed - and He is the Exalted in Might, the Forgiving -',
+        words: [
+          { id: 1, arabic: 'ٱلَّذِى', transliteration: 'Alladhī', translation: 'Who' },
+          { id: 2, arabic: 'خَلَقَ', transliteration: 'khalaqa', translation: 'created' },
+          { id: 3, arabic: 'ٱلْمَوْتَ', transliteration: 'al-mawta', translation: 'death' },
+          { id: 4, arabic: 'وَٱلْحَيَوٰةَ', transliteration: 'wal-ḥayāh', translation: 'and life' },
+          { id: 5, arabic: 'لِيَبْلُوَكُمْ', transliteration: 'li-yabluwakum', translation: 'that He may test you' },
+          { id: 6, arabic: 'أَيُّكُمْ', transliteration: 'ayyukum', translation: 'which of you' },
+          { id: 7, arabic: 'أَحْسَنُ', transliteration: 'aḥsanu', translation: '(is) best' },
+          { id: 8, arabic: 'عَمَلًۭا', transliteration: 'ʿamalan', translation: 'in deed' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 19,
+        arabic: 'أَوَلَمْ يَرَوْا۟ إِلَى ٱلطَّيْرِ فَوْقَهُمْ صَـٰٓفَّـٰتٍۢ وَيَقْبِضْنَ ۚ مَا يُمْسِكُهُنَّ إِلَّا ٱلرَّحْمَـٰنُ ۚ إِنَّهُۥ بِكُلِّ شَىْءٍۭ بَصِيرٌ',
+        transliteration: 'Awalam yaraw ilat tayri fawqahum saaffaatinw wa yaqbidn; maa yumsikuhunna illar Rahmaan; innahoo bikulli shai\'im Baseer',
+        translation: 'Do they not see the birds above them with wings outspread and [sometimes] folded in? None holds them [aloft] except the Most Merciful. Indeed He is, of all things, Seeing.',
+        words: [
+          { id: 1, arabic: 'أَوَلَمْ', transliteration: 'A-wa-lam', translation: 'Do not' },
+          { id: 2, arabic: 'يَرَوْا۟', transliteration: 'yaraw', translation: 'they see' },
+          { id: 3, arabic: 'إِلَى', transliteration: 'ilā', translation: 'at' },
+          { id: 4, arabic: 'ٱلطَّيْرِ', transliteration: 'aṭ-ṭayr', translation: 'the birds' },
+          { id: 5, arabic: 'فَوْقَهُمْ', transliteration: 'fawqahum', translation: 'above them' },
+          { id: 6, arabic: 'صَـٰٓفَّـٰتٍۢ', transliteration: 'ṣāffāt', translation: 'outspreading' },
+          { id: 7, arabic: 'وَيَقْبِضْنَ', transliteration: 'wa-yaqbiḍn', translation: 'and folding' },
+        ],
+        isMemorized: false,
+      },
+      {
+        number: 20,
+        arabic: 'أَمَّنْ هَـٰذَا ٱلَّذِى هُوَ جُندٌۭ لَّكُمْ يَنصُرُكُم مِّن دُونِ ٱلرَّحْمَـٰنِ ۚ إِنِ ٱلْكَـٰفِرُونَ إِلَّا فِى غُرُورٍ',
+        transliteration: 'Amman haazal lazee huwa jundul lakum yansurukum min doonir Rahmaan; inil kaafiroona illaa fee ghuroor',
+        translation: 'Or who is it that could be an army for you to aid you other than the Most Merciful? The disbelievers are in nothing but delusion.',
+        words: [
+          { id: 1, arabic: 'أَمَّنْ', transliteration: 'Am-man', translation: 'Or who' },
+          { id: 2, arabic: 'هَـٰذَا', transliteration: 'hādhā', translation: '(is) this' },
+          { id: 3, arabic: 'ٱلَّذِى', transliteration: 'alladhī', translation: 'that' },
+          { id: 4, arabic: 'هُوَ', transliteration: 'huwa', translation: 'he is' },
+          { id: 5, arabic: 'جُندٌۭ', transliteration: 'jundun', translation: 'an army' },
+        ],
+        isMemorized: false,
+      },
+    ],
+  },
+  103: {
+    number: 103,
+    name: 'Al-Asr',
+    transliteration: 'Al-\'Aṣr',
+    arabicName: 'سُورَةُ العَصْر',
+    translation: 'The Declining Day',
+    totalAyahs: 3,
+    revelationType: 'Meccan',
+    juzNumber: 30,
+    pageNumber: 601,
+    background:
+      'Imam ash-Shafi\'i noted that if humanity reflected solely upon Surah Al-Asr, it would suffice them. It outlines the four non-negotiable conditions for avoiding ultimate loss in this life and the next.',
+    thematicPillars: ['The Reality of Time', 'Faith and Good Deeds', 'Mutual Counsel to Truth', 'Mutual Counsel to Patience'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'وَٱلْعَصْرِ',
+        transliteration: 'Wal-\'asr',
+        translation: 'By time,',
+        words: [
+          { id: 1, arabic: 'وَٱلْعَصْرِ', transliteration: 'wal-ʿaṣr', translation: 'By the time' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 2,
+        arabic: 'إِنَّ ٱلْإِنسَـٰنَ لَفِى خُسْرٍ',
+        transliteration: 'Innal insaana lafee khusr',
+        translation: 'Indeed, mankind is in loss,',
+        words: [
+          { id: 1, arabic: 'إِنَّ', transliteration: 'inna', translation: 'Indeed' },
+          { id: 2, arabic: 'ٱلْإِنسَـٰنَ', transliteration: 'al-insāna', translation: 'mankind' },
+          { id: 3, arabic: 'لَفِى', transliteration: 'la-fī', translation: 'is in' },
+          { id: 4, arabic: 'خُسْرٍ', transliteration: 'khusr', translation: 'loss' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 3,
+        arabic: 'إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّـٰلِحَـٰتِ وَتَوَاصَوْا۟ بِٱلْحَقِّ وَتَوَاصَوْا۟ بِٱلصَّبْرِ',
+        transliteration: 'Illal lazeena aamanoo wa \'amilus saalihaati wa tawaasaw bilhaqqi wa tawaasaw bissabr',
+        translation: 'Except for those who have believed and done righteous deeds and advised each other to truth and advised each other to patience.',
+        words: [
+          { id: 1, arabic: 'إِلَّا', transliteration: 'illā', translation: 'except' },
+          { id: 2, arabic: 'ٱلَّذِينَ', transliteration: 'alladhīna', translation: 'those who' },
+          { id: 3, arabic: 'ءَامَنُوا۟', transliteration: 'āmanū', translation: 'believed' },
+          { id: 4, arabic: 'وَعَمِلُوا۟', transliteration: 'wa-ʿamilū', translation: 'and did' },
+          { id: 5, arabic: 'ٱلصَّـٰلِحَـٰتِ', transliteration: 'aṣ-ṣāliḥāt', translation: 'righteous deeds' },
+          { id: 6, arabic: 'وَتَوَاصَوْا۟', transliteration: 'wa-tawāṣaw', translation: 'and advised each other' },
+          { id: 7, arabic: 'بِٱلْحَقِّ', transliteration: 'bil-ḥaqq', translation: 'to the truth' },
+          { id: 8, arabic: 'وَتَوَاصَوْا۟', transliteration: 'wa-tawāṣaw', translation: 'and advised each other' },
+          { id: 9, arabic: 'بِٱلصَّبْرِ', transliteration: 'biṣ-ṣabr', translation: 'to patience' },
+        ],
+        isMemorized: true,
+      },
+    ],
+  },
+  108: {
+    number: 108,
+    name: 'Al-Kawthar',
+    transliteration: 'Al-Kawthar',
+    arabicName: 'سُورَةُ الكَوْثَر',
+    translation: 'The Abundance',
+    totalAyahs: 3,
+    revelationType: 'Meccan',
+    juzNumber: 30,
+    pageNumber: 602,
+    background:
+      'The shortest chapter in the Quran, revealed to console the Prophet Muhammad ﷺ when his opponents mocked him after the death of his sons. Allah promises him the heavenly river of Al-Kawthar and lasting legacy.',
+    thematicPillars: ['Divine Favor', 'Sincere Prayer & Sacrifice', 'Defeat of Opponents'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'إِنَّآ أَعْطَيْنَـٰكَ ٱلْكَوْثَرَ',
+        transliteration: 'Innaa a\'tainaakal kawthar',
+        translation: 'Indeed, We have granted you, [O Muhammad], al-Kawthar.',
+        words: [
+          { id: 1, arabic: 'إِنَّآ', transliteration: 'innā', translation: 'Indeed We' },
+          { id: 2, arabic: 'أَعْطَيْنَـٰكَ', transliteration: 'aʿṭaynāka', translation: 'have given you' },
+          { id: 3, arabic: 'ٱلْكَوْثَرَ', transliteration: 'al-kawthar', translation: 'the Abundance' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 2,
+        arabic: 'فَصَلِّ لِرَبِّكَ وَٱنْحَرْ',
+        transliteration: 'Fasalli li Rabbika wanhar',
+        translation: 'So pray to your Lord and sacrifice [to Him alone].',
+        words: [
+          { id: 1, arabic: 'فَصَلِّ', transliteration: 'fa-ṣalli', translation: 'So pray' },
+          { id: 2, arabic: 'لِرَبِّكَ', transliteration: 'li-Rabbika', translation: 'to your Lord' },
+          { id: 3, arabic: 'وَٱنْحَرْ', transliteration: 'wanḥar', translation: 'and sacrifice' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 3,
+        arabic: 'إِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ',
+        transliteration: 'Inna shaani\'aka huwal abtar',
+        translation: 'Indeed, your enemy is the one cut off.',
+        words: [
+          { id: 1, arabic: 'إِنَّ', transliteration: 'inna', translation: 'Indeed' },
+          { id: 2, arabic: 'شَانِئَكَ', transliteration: 'shāni\'aka', translation: 'your enemy' },
+          { id: 3, arabic: 'هُوَ', transliteration: 'huwa', translation: 'he is' },
+          { id: 4, arabic: 'ٱلْأَبْتَرُ', transliteration: 'al-abtar', translation: 'the one cut off' },
+        ],
+        isMemorized: true,
+      },
+    ],
+  },
+  112: {
+    number: 112,
+    name: 'Al-Ikhlas',
+    transliteration: 'Al-Ikhlāṣ',
+    arabicName: 'سُورَةُ الإِخْلَاص',
+    translation: 'The Sincerity',
+    totalAyahs: 4,
+    revelationType: 'Meccan',
+    juzNumber: 30,
+    pageNumber: 604,
+    background:
+      'A concise yet profound declaration of Allah\'s absolute oneness (Tawhid) and uniqueness. The Prophet ﷺ described it as being equal to one third of the Quran.',
+    thematicPillars: ['Absolute Oneness', 'Self-Sufficiency (As-Samad)', 'Eternal Transcendence'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'قُلْ هُوَ ٱللَّهُ أَحَدٌ',
+        transliteration: 'Qul Huwal laahu Ahad',
+        translation: 'Say, "He is Allah, [who is] One,',
+        words: [
+          { id: 1, arabic: 'قُلْ', transliteration: 'Qul', translation: 'Say' },
+          { id: 2, arabic: 'هُوَ', transliteration: 'Huwa', translation: 'He is' },
+          { id: 3, arabic: 'ٱللَّهُ', transliteration: 'Allāh', translation: 'Allah' },
+          { id: 4, arabic: 'أَحَدٌ', transliteration: 'Aḥad', translation: 'One' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 2,
+        arabic: 'ٱللَّهُ ٱلصَّمَدُ',
+        transliteration: 'Allaahus Samad',
+        translation: 'Allah, the Eternal Refuge.',
+        words: [
+          { id: 1, arabic: 'ٱللَّهُ', transliteration: 'Allāh', translation: 'Allah' },
+          { id: 2, arabic: 'ٱلصَّمَدُ', transliteration: 'aṣ-Ṣamad', translation: 'the Eternal Refuge' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 3,
+        arabic: 'لَمْ يَلِدْ وَلَمْ يُولَدْ',
+        transliteration: 'Lam yalid wa lam yoolad',
+        translation: 'He neither begets nor is born,',
+        words: [
+          { id: 1, arabic: 'لَمْ', transliteration: 'Lam', translation: 'Not' },
+          { id: 2, arabic: 'يَلِدْ', transliteration: 'yalid', translation: 'He begets' },
+          { id: 3, arabic: 'وَلَمْ', transliteration: 'wa-lam', translation: 'and not' },
+          { id: 4, arabic: 'يُولَدْ', transliteration: 'yūlad', translation: 'He is begotten' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 4,
+        arabic: 'وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ',
+        transliteration: 'Wa lam yakul lahoo kufuwan ahad',
+        translation: 'Nor is there to Him any equivalent."',
+        words: [
+          { id: 1, arabic: 'وَلَمْ', transliteration: 'Wa-lam', translation: 'And not' },
+          { id: 2, arabic: 'يَكُن', transliteration: 'yakun', translation: 'is' },
+          { id: 3, arabic: 'لَّهُۥ', transliteration: 'lahū', translation: 'to Him' },
+          { id: 4, arabic: 'كُفُوًا', transliteration: 'kufuwan', translation: 'an equivalent' },
+          { id: 5, arabic: 'أَحَدٌۢ', transliteration: 'aḥad', translation: 'anyone' },
+        ],
+        isMemorized: true,
+      },
+    ],
+  },
+  113: {
+    number: 113,
+    name: 'Al-Falaq',
+    transliteration: 'Al-Falaq',
+    arabicName: 'سُورَةُ الفَلَق',
+    translation: 'The Daybreak',
+    totalAyahs: 5,
+    revelationType: 'Meccan',
+    juzNumber: 30,
+    pageNumber: 604,
+    background:
+      'The first of the two protective Surahs (Al-Mu\'awwidhatayn). It teaches believers to seek refuge in Allah from the physical and hidden perils of the world.',
+    thematicPillars: ['Refuge in the Lord of the Dawn', 'Protection from Created Evil', 'Protection from Envy & Darkness'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ',
+        transliteration: 'Qul a\'oozu bi rabbil-falaq',
+        translation: 'Say, "I seek refuge in the Lord of daybreak',
+        words: [
+          { id: 1, arabic: 'قُلْ', transliteration: 'Qul', translation: 'Say' },
+          { id: 2, arabic: 'أَعُوذُ', transliteration: 'aʿūdhu', translation: 'I seek refuge' },
+          { id: 3, arabic: 'بِرَبِّ', transliteration: 'bi-Rabbi', translation: 'in (the) Lord' },
+          { id: 4, arabic: 'ٱلْفَلَقِ', transliteration: 'al-falaq', translation: '(of) the daybreak' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 2,
+        arabic: 'مِن شَرِّ مَا خَلَقَ',
+        transliteration: 'Min sharri maa khalaq',
+        translation: 'From the evil of that which He created',
+        words: [
+          { id: 1, arabic: 'مِن', transliteration: 'min', translation: 'From' },
+          { id: 2, arabic: 'شَرِّ', transliteration: 'sharri', translation: '(the) evil' },
+          { id: 3, arabic: 'مَا', transliteration: 'mā', translation: '(of) what' },
+          { id: 4, arabic: 'خَلَقَ', transliteration: 'khalaqa', translation: 'He created' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 3,
+        arabic: 'وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ',
+        transliteration: 'Wa min sharri ghaasiqin izaa waqab',
+        translation: 'And from the evil of darkness when it settles',
+        words: [
+          { id: 1, arabic: 'وَمِن', transliteration: 'wa-min', translation: 'And from' },
+          { id: 2, arabic: 'شَرِّ', transliteration: 'sharri', translation: '(the) evil' },
+          { id: 3, arabic: 'غَاسِقٍ', transliteration: 'ghāsiqin', translation: '(of) darkness' },
+          { id: 4, arabic: 'إِذَا', transliteration: 'idhā', translation: 'when' },
+          { id: 5, arabic: 'وَقَبَ', transliteration: 'waqab', translation: 'it settles' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 4,
+        arabic: 'وَمِن شَرِّ ٱلنَّفَّـٰثَـٰتِ فِى ٱلْعُقَدِ',
+        transliteration: 'Wa min sharrin naffaasaati fil \'uqad',
+        translation: 'And from the evil of the blowers in knots',
+        words: [
+          { id: 1, arabic: 'وَمِن', transliteration: 'wa-min', translation: 'And from' },
+          { id: 2, arabic: 'شَرِّ', transliteration: 'sharri', translation: '(the) evil' },
+          { id: 3, arabic: 'ٱلنَّفَّـٰثَـٰتِ', transliteration: 'an-naffāthāt', translation: '(of) the blowers' },
+          { id: 4, arabic: 'فِى', transliteration: 'fī', translation: 'in' },
+          { id: 5, arabic: 'ٱلْعُقَدِ', transliteration: 'al-ʿuqad', translation: 'the knots' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 5,
+        arabic: 'وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ',
+        transliteration: 'Wa min sharri haasidin izaa hasad',
+        translation: 'And from the evil of an envier when he envies."',
+        words: [
+          { id: 1, arabic: 'وَمِن', transliteration: 'wa-min', translation: 'And from' },
+          { id: 2, arabic: 'شَرِّ', transliteration: 'sharri', translation: '(the) evil' },
+          { id: 3, arabic: 'حَاسِدٍ', transliteration: 'ḥāsidin', translation: '(of) an envier' },
+          { id: 4, arabic: 'إِذَا', transliteration: 'idhā', translation: 'when' },
+          { id: 5, arabic: 'حَسَدَ', transliteration: 'ḥasada', translation: 'he envies' },
+        ],
+        isMemorized: true,
+      },
+    ],
+  },
+  114: {
+    number: 114,
+    name: 'An-Nas',
+    transliteration: 'An-Nās',
+    arabicName: 'سُورَةُ النَّاس',
+    translation: 'Mankind',
+    totalAyahs: 6,
+    revelationType: 'Meccan',
+    juzNumber: 30,
+    pageNumber: 604,
+    background:
+      'The final chapter of the Quran, establishing total refuge in Allah as the Lord, Sovereign, and God of all humanity against spiritual whisperings (Waswas).',
+    thematicPillars: ['Lord, King, and God of Mankind', 'The Hidden Whispering Devil', 'Spiritual Protection from Jinn & Mankind'],
+    ayahs: [
+      {
+        number: 1,
+        arabic: 'قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ',
+        transliteration: 'Qul a\'oozu bi rabbin naas',
+        translation: 'Say, "I seek refuge in the Lord of mankind,',
+        words: [
+          { id: 1, arabic: 'قُلْ', transliteration: 'Qul', translation: 'Say' },
+          { id: 2, arabic: 'أَعُوذُ', transliteration: 'aʿūdhu', translation: 'I seek refuge' },
+          { id: 3, arabic: 'بِرَبِّ', transliteration: 'bi-Rabbi', translation: 'in (the) Lord' },
+          { id: 4, arabic: 'ٱلنَّاسِ', transliteration: 'an-nās', translation: '(of) mankind' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 2,
+        arabic: 'مَلِكِ ٱلنَّاسِ',
+        transliteration: 'Malikin naas',
+        translation: 'The Sovereign of mankind,',
+        words: [
+          { id: 1, arabic: 'مَلِكِ', transliteration: 'Maliki', translation: 'The Sovereign' },
+          { id: 2, arabic: 'ٱلنَّاسِ', transliteration: 'an-nās', translation: '(of) mankind' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 3,
+        arabic: 'إِلَـٰهِ ٱلنَّاسِ',
+        transliteration: 'Ilaahin naas',
+        translation: 'The God of mankind,',
+        words: [
+          { id: 1, arabic: 'إِلَـٰهِ', transliteration: 'Ilāhi', translation: 'The God' },
+          { id: 2, arabic: 'ٱلنَّاسِ', transliteration: 'an-nās', translation: '(of) mankind' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 4,
+        arabic: 'مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ',
+        transliteration: 'Min sharril waswaasil khannaas',
+        translation: 'From the evil of the retreating whisperer -',
+        words: [
+          { id: 1, arabic: 'مِن', transliteration: 'min', translation: 'From' },
+          { id: 2, arabic: 'شَرِّ', transliteration: 'sharri', translation: '(the) evil' },
+          { id: 3, arabic: 'ٱلْوَسْوَاسِ', transliteration: 'al-waswās', translation: '(of) the whisperer' },
+          { id: 4, arabic: 'ٱلْخَنَّاسِ', transliteration: 'al-khannās', translation: 'who withdraws' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 5,
+        arabic: 'ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ',
+        transliteration: 'Allazee yuwaswisu fee sudoorin naas',
+        translation: 'Who whispers [evil] into the breasts of mankind -',
+        words: [
+          { id: 1, arabic: 'ٱلَّذِى', transliteration: 'alladhī', translation: 'Who' },
+          { id: 2, arabic: 'يُوَسْوِسُ', transliteration: 'yuwaswisu', translation: 'whispers' },
+          { id: 3, arabic: 'فِى', transliteration: 'fī', translation: 'into' },
+          { id: 4, arabic: 'صُدُورِ', transliteration: 'ṣudūri', translation: '(the) breasts' },
+          { id: 5, arabic: 'ٱلنَّاسِ', transliteration: 'an-nās', translation: '(of) mankind' },
+        ],
+        isMemorized: true,
+      },
+      {
+        number: 6,
+        arabic: 'مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ',
+        transliteration: 'Minal jinnati wannaas',
+        translation: 'From among the jinn and mankind."',
+        words: [
+          { id: 1, arabic: 'مِنَ', transliteration: 'mina', translation: 'From' },
+          { id: 2, arabic: 'ٱلْجِنَّةِ', transliteration: 'al-jinnati', translation: 'the jinn' },
+          { id: 3, arabic: 'وَٱلنَّاسِ', transliteration: 'wan-nās', translation: 'and mankind' },
+        ],
+        isMemorized: true,
+      },
+    ],
+  },
+};

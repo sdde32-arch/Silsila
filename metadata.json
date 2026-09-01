@@ -1,0 +1,6 @@
+{
+  "name": "Silsila",
+  "description": "Memorize the Quran, One Ayah at a Time. Mobile-first Quran memorization, guided Hifz, active recall & spaced repetition system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Root document for a user storing plan, progression, settings and profile info",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "photoURL": { "type": "string", "description": "User photo URL" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last updated timestamp" },
+        "plan": { "type": "object", "description": "User memorization plan" },
+        "progression": { "type": "object", "description": "User overall memorization progression" },
+        "theme": { "type": "string", "description": "App theme preference" },
+        "reciter": { "type": "string", "description": "Selected reciter ID or subfolder" }
+      },
+      "required": ["uid"]
+    },
+    "AyahRetention": {
+      "title": "AyahRetention",
+      "description": "Retention and SM-2 spaced repetition state for an ayah",
+      "type": "object",
+      "properties": {
+        "ayahKey": { "type": "string", "description": "Key in format surah_ayah e.g. 1_1" },
+        "surahNumber": { "type": "number" },
+        "ayahNumber": { "type": "number" },
+        "globalOrder": { "type": "number" },
+        "interval": { "type": "number" },
+        "repetitions": { "type": "number" },
+        "easeFactor": { "type": "number" },
+        "stage": { "type": "string" },
+        "nextReviewAt": { "type": "string" },
+        "lastReviewedAt": { "type": "string" }
+      },
+      "required": ["surahNumber", "ayahNumber"]
+    },
+    "NiyyahEntry": {
+      "title": "NiyyahEntry",
+      "description": "Spiritual intention or reflection log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "intentionText": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "surahTarget": { "type": "number" }
+      },
+      "required": ["id", "intentionText", "createdAt"]
+    },
+    "ExamResult": {
+      "title": "ExamResult",
+      "description": "Surah mastery exam evaluation result",
+      "type": "object",
+      "properties": {
+        "examId": { "type": "string" },
+        "surahNumber": { "type": "number" },
+        "surahName": { "type": "string" },
+        "score": { "type": "number" },
+        "passed": { "type": "boolean" },
+        "date": { "type": "string" },
+        "correctQuestions": { "type": "number" },
+        "totalQuestions": { "type": "number" }
+      },
+      "required": ["examId", "surahNumber", "score", "passed"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "UserProfile",
+      "description": "User profile, plan, and progression root document"
+    },
+    "/users/{uid}/retention/{ayahKey}": {
+      "schema": "AyahRetention",
+      "description": "Retention SM-2 spaced repetition record per ayah"
+    },
+    "/users/{uid}/niyyah/{entryId}": {
+      "schema": "NiyyahEntry",
+      "description": "User's spiritual intention journal entries"
+    },
+    "/users/{uid}/examResults/{examId}": {
+      "schema": "ExamResult",
+      "description": "Surah mastery exam test history"
+    }
+  }
+}

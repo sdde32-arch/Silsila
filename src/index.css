@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-canvas: #FAF9F5;
+  --color-sabaq: #D97706;
+  --color-sabaq-hover: #B45309;
+  --color-review: #6366F1;
+  --color-review-hover: #4F46E5;
+  --color-mastery: #10B981;
+  --color-mastery-hover: #059669;
+  --color-brand-dark: #0F172A;
+}
+
+@layer base {
+  :root {
+    /* Silsila Exact Approved Token System */
+    --color-canvas: #FAF9F5;
+    --color-surface: #FFFFFF;
+    --color-surface-subtle: #FAF9F5;
+    --color-surface-muted: #F1F5F9;
+    --color-surface-elevated: #FFFFFF;
+
+    --color-text-primary: #0F172A;
+    --color-text-secondary: #334155;
+    --color-text-muted: #64748B;
+
+    --color-brand-dark: #0F172A;
+    --color-brand-primary: #0F172A;
+
+    /* Sabaq / Primary Action */
+    --color-sabaq: #D97706;
+    --color-sabaq-hover: #B45309;
+    --color-sabaq-subtle: #FEF3C7;
+
+    /* Sabqi & Manzil / Review */
+    --color-review: #6366F1;
+    --color-review-hover: #4F46E5;
+    --color-review-subtle: #EEF2FF;
+
+    /* Mastery & Success */
+    --color-mastery: #10B981;
+    --color-mastery-hover: #059669;
+    --color-mastery-subtle: #ECFDF5;
+
+    --color-error: #E11D48;
+    --color-error-subtle: #FFF1F2;
+    --color-error-dark: #BE123C;
+
+    --color-border-subtle: #E2E8F0;
+    --color-border-default: #CBD5E1;
+    --color-border-active: #6366F1;
+
+    /* Radius Tokens */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-3xl: 28px;
+    --radius-full: 9999px;
+  }
+
+  .dark {
+    /* Pure AMOLED Dark Theme System */
+    --color-canvas: #000000;
+    --color-surface: #0E121B;
+    --color-surface-subtle: #141A26;
+    --color-surface-muted: #1A2232;
+    --color-surface-elevated: #222B3D;
+
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #CBD5E1;
+    --color-text-muted: #94A3B8;
+
+    --color-brand-dark: #FFFFFF;
+    --color-brand-primary: #818CF8;
+
+    /* Sabaq / Primary Action */
+    --color-sabaq: #F59E0B;
+    --color-sabaq-hover: #D97706;
+    --color-sabaq-subtle: #3D2206;
+
+    /* Sabqi & Manzil / Review */
+    --color-review: #818CF8;
+    --color-review-hover: #6366F1;
+    --color-review-subtle: #19183B;
+
+    /* Mastery & Success */
+    --color-mastery: #34D399;
+    --color-mastery-hover: #10B981;
+    --color-mastery-subtle: #06372B;
+
+    --color-error: #FB7185;
+    --color-error-subtle: #400A16;
+    --color-error-dark: #F43F5E;
+
+    --color-border-subtle: #161D2B;
+    --color-border-default: #232D3F;
+    --color-border-active: #818CF8;
+  }
+
+  body {
+    background-color: #FAF9F5;
+    color: #0F172A;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .dark body,
+  html.dark body {
+    background-color: #000000;
+    color: #FFFFFF;
+  }
+
+  /* Custom utility for Quranic text - Crisp Jet Black in Light, Crisp Radiant White in Dark */
+  .font-quran {
+    font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+    color: #000000;
+    font-weight: 700;
+  }
+
+  .dark .font-quran,
+  html.dark .font-quran {
+    color: #FFFFFF;
+  }
+
+  .font-sans-ui {
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  }
+}
+
+/* Custom animations & smooth transitions */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mapPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4), 0 8px 30px rgba(16, 185, 129, 0.25);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.15), 0 12px 40px rgba(245, 158, 11, 0.4);
+  }
+}
+
+@keyframes lanternFlicker {
+  0%, 100% {
+    opacity: 0.95;
+    filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.6));
+  }
+  50% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 26px rgba(245, 158, 11, 0.85));
+  }
+}
+
+@keyframes celestialPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 14px rgba(168, 85, 247, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 28px rgba(192, 132, 252, 0.9));
+  }
+}
+
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 30s linear infinite;
+}
+
+.animate-map-pulse {
+  animation: mapPulse 2.8s ease-in-out infinite;
+}
+
+.animate-lantern-flicker {
+  animation: lanternFlicker 3s ease-in-out infinite;
+}
+
+.animate-celestial-pulse {
+  animation: celestialPulse 3.5s ease-in-out infinite;
+}
+
+.animate-flow-dash {
+  animation: flowDash 1.8s linear infinite;
+}
+
+/* Hide scrollbar globally across all browsers, modals, and containers */
+html,
+body,
+#root,
+*,
+*::before,
+*::after {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Hide scrollbar utility class */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Modal Open: Completely Lock Background Screen in Place */
+html.modal-open,
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: none !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
+/* Modal Dialog and Active Pop-up Layering & Containment */
+[role="dialog"],
+[aria-modal="true"] {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+

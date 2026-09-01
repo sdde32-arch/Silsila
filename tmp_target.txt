@@ -1,0 +1,109 @@
+                    key={ayah.number}
+                    className={`p-3.5 sm:p-4.5 rounded-2xl transition-all border ${
+                      isAyahPlaying
+                        ? 'bg-white text-slate-950 border-2 border-indigo-600 shadow-md ring-2 ring-indigo-500/10'
+                        : 'bg-white text-slate-950 border border-slate-300 shadow-2xs hover:border-slate-400'
+                    }`}
+                  >
+                    {/* Verse Card Top Bar: Aligned, Compact Action Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 mb-3 border-b border-slate-200/80">
+                      {/* Left: Verse Pill & Bookmark */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 h-8 flex items-center shadow-xs">
+                          Verse {ayah.number}
+                        </div>
+
+                        <button
+                          onClick={() => handleToggleBookmark(ayah)}
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                            isBookmarked
+                              ? 'bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs'
+                              : 'bg-white hover:bg-slate-50 text-slate-600 hover:text-black border border-slate-200 shadow-xs'
+                          }`}
+                          title={isBookmarked ? 'Bookmarked' : 'Bookmark verse'}
+                        >
+                          <Bookmark className="w-3.5 h-3.5 fill-current" />
+                        </button>
+                      </div>
+
+                      {/* Right: Action Pills & Play Circle */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* 6-Step Memorization Lesson Button */}
+                        <button
+                          onClick={() => onStartLesson(selectedSurahMeta.number, ayah.number)}
+                          className="h-8 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-[11px] font-extrabold flex items-center gap-1.5 cursor-pointer transition-all shadow-sm active:scale-95"
+                          title="Start Memorization Lesson for this Ayah"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 stroke-[2.2]" />
+                          <span>Memorize</span>
+                        </button>
+
+                        {/* Tafsir & Reflections Button */}
+                        <button
+                          onClick={() => {
+                            setSelectedTafsirAyah(ayah);
+                            setInitialTafsirTab('exegesis');
+                          }}
+                          className="h-8 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-900 text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-95"
+                          title="Open Tafsir & Word Meanings"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 text-indigo-700" />
+                          <span>Tafsir</span>
+                        </button>
+
+                        {/* Download Ayah Notes Button */}
+                        <button
+                          onClick={async () => {
+                            if (downloadingAyah === ayah.number) return;
+                            setDownloadingAyah(ayah.number);
+                            setDownloadProgress(0);
+                            
+                            // Animate progress up over ~1.5s
+                            const interval = setInterval(() => {
+                              setDownloadProgress(p => {
+                                if (p >= 90) return 90; // hold near end until done
+                                return p + 15;
+                              });
+                            }, 200);
+
+                            await downloadAyahOfflineNotes(selectedSurahMeta.number, ayah.number);
+                            
+                            clearInterval(interval);
+                            setDownloadProgress(100);
+                            setTimeout(() => {
+                              setDownloadingAyah(null);
+                              setDownloadProgress(0);
+                              setDownloadedAyahs(prev => ({ ...prev, [ayah.number]: true }));
+                            }, 600);
+                          }}
+                          className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                            downloadingAyah === ayah.number
+                              ? 'bg-slate-50 border-slate-300'
+                              : downloadedAyahs[ayah.number]
+                                ? 'bg-emerald-50 border-emerald-200'
+                                : 'bg-white hover:bg-slate-50 border-slate-200'
+                          }`}
+                          title={downloadedAyahs[ayah.number] ? "Offline Notes Downloaded" : "Download Offline Notes for this Ayah"}
+                          disabled={downloadingAyah === ayah.number}
+                        >
+                          <div className="relative w-4 h-4">
+                            <DownloadCloud className={`absolute inset-0 w-4 h-4 ${
+                              downloadingAyah === ayah.number 
+                                ? 'text-slate-300' 
+                                : downloadedAyahs[ayah.number] 
+                                  ? 'text-emerald-500' 
+                                  : 'text-slate-600'
+                            }`} />
+                            {downloadingAyah === ayah.number && (
+                              <div
+                                className="absolute inset-0 text-emerald-500 overflow-hidden transition-all duration-200"
+                                style={{ clipPath: `inset(${100 - downloadProgress}% 0 0 0)` }}
+                              >
+                                <DownloadCloud className="w-4 h-4 fill-current" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Play Button */}
+                        <button
