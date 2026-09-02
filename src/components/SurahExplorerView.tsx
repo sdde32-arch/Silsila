@@ -220,7 +220,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
       fontSize: `${currentArabicPx}px`,
       fontFamily,
       lineHeight,
-      color: '#000000',
+      
       fontWeight: 700,
     };
   };
@@ -1214,9 +1214,9 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
             <div className="space-y-3">
               {/* Medina Mushaf Bismillah Opening Header for Surahs other than 1 and 9 */}
               {selectedSurahMeta.number !== 1 && selectedSurahMeta.number !== 9 && (
-                <div className="text-center py-6 px-4 rounded-3xl bg-white border border-slate-300 shadow-2xs">
+                <div className="text-center py-6 px-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-2xs">
                   <p className="font-quran text-3xl sm:text-4xl font-bold text-black leading-loose overflow-visible dark:text-slate-100" dir="rtl">
-                    بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                    {displaySettings.showWordHints ? 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ' : annotateText('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ')}
                   </p>
                 </div>
               )}
@@ -1242,8 +1242,8 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                     key={ayah.number}
                     className={`p-3.5 sm:p-4.5 rounded-2xl transition-all border ${
                       isAyahPlaying
-                        ? 'bg-white text-slate-950 border-2 border-indigo-600 shadow-md ring-2 ring-indigo-500/10'
-                        : 'bg-white text-slate-950 border border-slate-300 shadow-2xs hover:border-slate-400'
+                        ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-slate-100 border-2 border-indigo-600 shadow-md ring-2 ring-indigo-500/10'
+                        : 'bg-white dark:bg-slate-900 text-slate-950 dark:text-slate-100 border border-slate-300 dark:border-slate-700 shadow-2xs hover:border-slate-400 dark:hover:border-slate-500'
                     }`}
                   >
                     {/* Verse Card Top Bar: Aligned, Compact Action Row */}
@@ -1254,20 +1254,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                           <div className="px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 h-8 flex items-center shadow-xs">
                             Verse {ayah.number}
                           </div>
-                          <label className="flex items-center gap-1.5 cursor-pointer bg-white px-2 py-1 h-8 rounded-lg border border-slate-200 shadow-2xs select-none hover:bg-slate-50 transition-colors" title="Toggle Tajweed Colorization">
-                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider hidden sm:inline">Tajweed</span>
-                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider sm:hidden">Taj</span>
-                            <input 
-                              type="checkbox" 
-                              checked={displaySettings.showTajweed ?? false} 
-                              onChange={(e) => {
-                                const newSettings = { ...displaySettings, showTajweed: e.target.checked };
-                                setDisplaySettings(newSettings);
-                                saveStoredReaderSettings(newSettings);
-                              }}
-                              className="w-3.5 h-3.5 accent-emerald-500 rounded-sm cursor-pointer" 
-                            />
-                          </label>
+
                         </div>
                         
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -1403,7 +1390,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                                 } dark:text-slate-100`}
                                 title="Click to reveal / hide word"
                               >
-                                {isRevealed ? (displaySettings.showTajweed ? annotateText(w.arabic) : w.arabic) : '••••'}
+                                {isRevealed ? (annotateText(w.arabic)) : '••••'}
                               </button>
                             );
                           })}
@@ -1439,7 +1426,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                                     : 'text-black'
                                 } dark:text-slate-100`}
                               >
-                                {displaySettings.showTajweed ? annotateText(w.arabic) : w.arabic}
+                                {annotateText(w.arabic)}
                               </span>
                             );
                           })}
@@ -1490,9 +1477,9 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
           {/* ========================================================================= */}
           {readerTab === 'mushaf' && activeSurahContent && (
             <div className="space-y-3">
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-300 shadow-2xs space-y-3">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-2xs space-y-3">
                 {/* Top Mushaf Header Ribbon */}
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-0.5 shadow-2xs">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center space-y-0.5 shadow-2xs">
                   <h2 className="font-quran text-2xl sm:text-3xl font-bold text-black leading-[2.2] overflow-visible dark:text-slate-100" dir="rtl">
                     {activeSurahContent.arabicName}
                   </h2>
@@ -1503,15 +1490,15 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
 
                 {/* Bismillah Opening */}
                 {activeSurahContent.number !== 9 && (
-                  <div className="text-center py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs">
+                  <div className="text-center py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
                     <p className="font-quran text-2xl sm:text-3xl font-bold text-black leading-[2.2] overflow-visible dark:text-slate-100" dir="rtl">
-                      بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                      {displaySettings.showWordHints ? 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ' : annotateText('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ')}
                     </p>
                   </div>
                 )}
 
                 {/* Classical Flowing Ayahs */}
-                <div className="p-3.5 sm:p-5 rounded-xl bg-slate-50/70 border border-slate-200 shadow-2xs text-justify space-y-2" dir="rtl">
+                <div className="p-3.5 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 shadow-2xs text-justify space-y-2" dir="rtl">
                   <p className="text-black font-bold font-quran leading-loose dark:text-slate-100" style={getArabicStyle()}>
                     {activeSurahContent.ayahs.map((ayah) => {
                       const isSelected = playingAyah === ayah.number && isAudioPlaying;
@@ -1559,7 +1546,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                                     : ''
                                 }`}
                               >
-                                {displaySettings.showTajweed ? annotateText(w.arabic) : w.arabic}
+                                {annotateText(w.arabic)}
                               </span>
                             );
                           })}{' '}

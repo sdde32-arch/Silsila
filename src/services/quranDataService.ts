@@ -163,6 +163,17 @@ export function removeBismillahFromTranslation(surahNumber: number, ayahNumber: 
   return text.replace(/^[\s]*(?:in\s+the\s+name\s+of\s+allah[,\s]+the\s+entirely\s+merciful[,\s]+the\s+especially\s+merciful[.\s]*[-–—:]*)\s*/i, '').trim();
 }
 
+export function stripHtmlTags(text: string): string {
+  if (!text) return text;
+  // Completely remove any <sup>...</sup> elements and their inner content (footnotes)
+  let cleaned = text.replace(/<sup[^>]*>.*?<\/sup>/gi, '');
+  // Remove any remaining HTML tags
+  cleaned = cleaned.replace(/<[^>]*>?/gmi, '');
+  // Normalize extra spacing
+  cleaned = cleaned.replace(/\s{2,}/g, ' ');
+  return cleaned.trim();
+}
+
 /** In-memory cache for fetched Surahs */
 const surahCache = new Map<number, SurahContent>();
 
@@ -183,7 +194,7 @@ export async function getSurahCompleteData(
 
   // 2. Check local storage cache
   try {
-    const localSaved = localStorage.getItem(`quran_surah_${surahNumber}_v3`);
+    const localSaved = localStorage.getItem(`quran_surah_${surahNumber}_v4`);
     if (localSaved) {
       const parsed: SurahContent = JSON.parse(localSaved);
       if (parsed.ayahs && parsed.ayahs.length === parsed.totalAyahs) {
@@ -234,6 +245,8 @@ export async function getSurahCompleteData(
           let transText = englishTranslationObj ? englishTranslationObj.text : '';
           let translitText = transliterationObj ? transliterationObj.text : '';
 
+          transText = stripHtmlTags(transText);
+
           // Clean Bismillah from Verse 1 for all Surahs other than Al-Fatiha (Surah 1) and At-Tawbah (Surah 9)
           if (ayahNum === 1 && surahNumber !== 1 && surahNumber !== 9) {
             arabicText = removeBismillahFromAyah(surahNumber, ayahNum, arabicText);
@@ -245,10 +258,10 @@ export async function getSurahCompleteData(
           const words = (v.words || [])
             .filter((w: any) => w.char_type_name === 'word')
             .map((w: any, widx: number) => ({
-              id: widx + 1,
+                            id: widx + 1,
               arabic: w.text_uthmani || w.text || '',
               transliteration: w.transliteration?.text || '',
-              translation: w.translation?.text || '',
+              translation: stripHtmlTags(w.translation?.text || ''),
             }));
 
           // Remove Bismillah from words array for first Ayah of each non-Fatiha/Tawbah Surah
@@ -288,7 +301,7 @@ export async function getSurahCompleteData(
 
         surahCache.set(surahNumber, fullContent);
         try {
-          localStorage.setItem(`quran_surah_${surahNumber}_v3`, JSON.stringify(fullContent));
+          localStorage.setItem(`quran_surah_${surahNumber}_v4`, JSON.stringify(fullContent));
         } catch (e) {
           // localStorage full or restricted
         }
@@ -679,7 +692,7 @@ const DEFAULT_STORED_SETTINGS: StoredReaderSettings = {
   lineSpacing: 'balanced',
   showTranslation: true,
   showTransliteration: true,
-  showTajweed: false,
+  showTajweed: true,
   showWordHints: true,
   autoScroll: true,
 };

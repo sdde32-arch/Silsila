@@ -1464,7 +1464,7 @@ export function generateWordOrderExercise(arabicText: string): WordOrderExercise
 
 export interface LessonStep {
   stepNumber: number;
-  stepType: 'listen' | 'word-breakdown' | 'shadowing' | 'self-recitation' | 'active-recall' | 'self-scoring';
+  stepType: 'listen' | 'word-breakdown' | 'english-translation' | 'shadowing' | 'self-recitation' | 'active-recall' | 'self-scoring';
   title: string;
   subtitle: string;
   ayah: AyahDetail;
@@ -1594,6 +1594,17 @@ export function generateAyahLesson(
     },
     {
       stepNumber: 3,
+      stepType: 'english-translation',
+      title: 'Translation Recall',
+      subtitle: 'Memorize the English meaning',
+      ayah,
+      surahNumber,
+      surahName: surahMeta.name,
+      audioUrl,
+      mechanic: 'full_blind',
+    },
+    {
+      stepNumber: 4,
       stepType: 'active-recall',
       title: 'Fill-in-the-Blank Recall',
       subtitle:
@@ -1614,7 +1625,7 @@ export function generateAyahLesson(
       wordOrderData,
     },
     {
-      stepNumber: 4,
+      stepNumber: 5,
       stepType: 'self-recitation',
       title: 'Blur & Self-Recitation',
       subtitle: 'Recite from memory with peek option enabled',
@@ -1625,7 +1636,7 @@ export function generateAyahLesson(
       mechanic: 'full_blind',
     },
     {
-      stepNumber: 5,
+      stepNumber: 6,
       stepType: 'self-scoring',
       title: 'Full Blind Recall & Scoring',
       subtitle: 'Complete blind recitation and rate your recall accuracy',

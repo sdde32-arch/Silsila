@@ -341,7 +341,7 @@ export const ContinueTheAyahGame: React.FC<ContinueTheAyahGameProps> = ({
 
               {/* Arabic Opening */}
               <div className="py-1" dir="rtl">
-                <p className="font-quran text-2xl sm:text-3xl font-extrabold text-black leading-relaxed dark:text-slate-100" style={{ color: '#000000' }}>
+                <p className="font-quran text-2xl sm:text-3xl font-extrabold text-black leading-relaxed dark:text-slate-100" style={{   }}>
                   {roundData.prefixSnippet} ...
                 </p>
               </div>
@@ -383,7 +383,7 @@ export const ContinueTheAyahGame: React.FC<ContinueTheAyahGameProps> = ({
 
                   {/* Continuation Arabic & Transliteration Reveal */}
                   <div className="flex items-center gap-2 flex-wrap justify-center text-xs">
-                    <span className="font-quran font-extrabold text-sm sm:text-base text-black dark:text-slate-100" dir="rtl" style={{ color: '#000000' }}>
+                    <span className="font-quran font-extrabold text-sm sm:text-base text-black dark:text-slate-100" dir="rtl" style={{   }}>
                       {roundData.correctContinuation}
                     </span>
                     {roundData.correctContinuationTransliteration && (
@@ -431,7 +431,7 @@ export const ContinueTheAyahGame: React.FC<ContinueTheAyahGameProps> = ({
                     </span>
                     <div className="flex flex-col min-w-0 flex-1 text-right">
                       {/* Arabic Continuation Text */}
-                      <span className="font-quran text-base sm:text-lg font-bold text-black truncate dark:text-slate-100" style={{ color: '#000000' }}>
+                      <span className="font-quran text-base sm:text-lg font-bold text-black truncate dark:text-slate-100" style={{   }}>
                         {option.arabicSnippet}
                       </span>
                       {/* Transliteration for Continuation */}

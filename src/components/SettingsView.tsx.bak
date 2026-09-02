@@ -456,6 +456,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, onOpenPlanMo
             </div>
             <span className="text-xs font-bold text-amber-700 dark:text-amber-400">Reset</span>
           </button>
+
+          <button
+            onClick={() => setShowSignOutNotice(true)}
+            className="w-full flex items-center justify-between p-3 rounded-xl text-left border border-slate-200/70 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer min-h-[50px]"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                <LogOut className="w-4 h-4" />
+              </div>
+              <div>
+                <h5 className="font-bold text-xs text-slate-900 dark:text-slate-100">Sign Out</h5>
+                <p className="text-[10.5px] text-slate-500 dark:text-slate-400">Return to welcome screen</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Sign Out</span>
+          </button>
+
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="w-full flex items-center justify-between p-3 rounded-xl text-left border border-rose-100 dark:border-rose-900/60 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer min-h-[50px]"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h5 className="font-bold text-xs text-rose-700 dark:text-rose-400">Delete Account</h5>
+                <p className="text-[10.5px] text-rose-500 dark:text-rose-400">Permanently erase your account and all data</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-rose-700 dark:text-rose-400">Delete</span>
+          </button>
         </div>
       </section>
 

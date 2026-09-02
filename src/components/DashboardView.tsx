@@ -88,13 +88,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="w-full space-y-2.5 pb-2 overflow-x-hidden box-border animate-in fade-in duration-300">
       {/* 1. TOP GREETING & STATUS HEADER */}
-      <header className="flex items-center justify-between gap-2.5 px-0.5 pt-0.5">
-        <div className="min-w-0">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-0.5 pt-0.5">
+        <div className="min-w-0 flex-1">
           <h1 className="font-black text-base sm:text-lg text-slate-900 tracking-tight leading-tight truncate">
             As-salamu alaykum, {userName}
           </h1>
-          <p className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-1.5 whitespace-nowrap">
-            <span>Aug 17</span>
+          <p className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
+            <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
             <span className="text-slate-300">•</span>
             <span className="truncate">3 Rabi' al-Awwal 1448 AH</span>
           </p>

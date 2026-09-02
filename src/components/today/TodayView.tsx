@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Heart,
 } from 'lucide-react';
 import { StreakDetailsModal } from '../memorization/StreakDetailsModal';
 import {
@@ -47,6 +48,7 @@ import { ALL_114_SURAHS } from '../../data/quranMetadata';
 import { SURAH_CONTENT_DB, AyahDetail } from '../../data/quranVerses';
 import { getSurahCompleteData } from '../../services/quranDataService';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { getNiyyahEntries } from '../../services/niyyahService';
 import { SilsilaLogo, SilsilaEmblem } from '../ui/SilsilaLogo';
 
 export interface TodayViewProps {
@@ -130,6 +132,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const sabqiCount = dailyQueue.sabqi.length;
   const manzilCount = dailyQueue.manzil.length;
   const allDailyComplete = isSabaqDoneToday && sabqiCount === 0 && manzilCount === 0;
+  const primaryNiyyah = getNiyyahEntries().find(n => n.isPrimary) || getNiyyahEntries()[0];
 
   // Active study step if user stopped mid-way
   const activeStep = progression.activeStudyPosition?.surahNumber === dailyQueue.sabaq.surahId &&
@@ -228,16 +231,16 @@ export const TodayView: React.FC<TodayViewProps> = ({
   return (
     <div className="w-full space-y-3.5 pb-2 overflow-x-hidden box-border animate-in fade-in duration-300">
       {/* 1. GREETING & DATE HEADER */}
-      <header className="flex items-center justify-between gap-2.5 px-0.5 pt-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/80 p-1 flex items-center justify-center shrink-0 shadow-2xs">
-            <SilsilaEmblem className="w-8 h-8" />
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2.5 px-0.5 pt-1">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 sm:w-10 sm:h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/80 p-1 flex items-center justify-center shrink-0 shadow-2xs">
+            <SilsilaEmblem className="w-8 h-8 sm:w-7 sm:h-7" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="font-black text-lg sm:text-xl text-slate-900 dark:text-slate-50 tracking-tight leading-tight truncate">
               As-salamu alaykum, {userName}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 sm:mt-0.5 flex items-center gap-1.5 flex-wrap">
               <span className="font-bold text-slate-700 dark:text-slate-300">Today</span>
               <span className="text-slate-300 dark:text-slate-600">•</span>
               <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
@@ -248,7 +251,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
         </div>
 
         {/* Top-Right Pills: Hifz Points & Consistency / Grace */}
-        <div id="tour-hifz-points" data-tour="hifz-points" className="flex items-center gap-1.5 shrink-0">
+        <div id="tour-hifz-points" data-tour="hifz-points" className="flex items-center gap-2 sm:gap-1.5 shrink-0 pl-14 sm:pl-0">
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-300 text-xs font-bold shrink-0 shadow-2xs"
             title={`Hifz Points: ${progression.hifzPoints ?? 15} pts (Need min 5 pts to unlock new Ayahs. +10 for new Ayah drill, +1 for revision, -1 for lesson error, -3 for exam error)`}
@@ -267,6 +270,28 @@ export const TodayView: React.FC<TodayViewProps> = ({
           </button>
         </div>
       </header>
+
+      {/* PRIMARY NIYYAH / INTENTION */}
+      {primaryNiyyah && (
+        <div className="w-full relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-300">
+          <div className="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 pointer-events-none">
+            <Heart className="w-24 h-24" />
+          </div>
+          <div className="relative z-10 flex gap-3.5 items-start">
+            <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800">
+              <Heart className="w-4.5 h-4.5 fill-amber-500/20" />
+            </div>
+            <div>
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 mb-1">
+                Your Niyyah (Intention)
+              </div>
+              <p className="text-sm sm:text-base font-serif italic font-medium text-slate-800 dark:text-slate-200 leading-snug">
+                "{primaryNiyyah.intentionText}"
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. FEATURES & QUICK ACCESS ACCORDION EXTENSION (DROPS DOWN IN-LINE ON THE PAGE) */}
       <section className="rounded-2xl bg-white dark:bg-[#0E121B] border border-slate-200/90 dark:border-zinc-800/80 shadow-2xs overflow-hidden transition-all duration-200">

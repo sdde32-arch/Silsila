@@ -363,7 +363,7 @@ export const CatchTheAyatGame: React.FC<CatchTheAyatGameProps> = ({
             <div className="flex items-center justify-between text-[9.5px] font-black uppercase text-slate-400">
               <span>{roundData.targetAyah.surahName} {roundData.targetAyah.ayahNumber}</span>
               <span className="text-amber-700 font-bold">
-                Tap next: <span className="font-quran text-xs sm:text-sm font-extrabold text-black dark:text-slate-100" dir="rtl" style={{ color: '#000000' }}>{nextTargetWord || 'Done!'}</span>
+                Tap next: <span className="font-quran text-xs sm:text-sm font-extrabold text-black dark:text-slate-100" dir="rtl" style={{   }}>{nextTargetWord || 'Done!'}</span>
               </span>
             </div>
 
@@ -405,7 +405,7 @@ export const CatchTheAyatGame: React.FC<CatchTheAyatGameProps> = ({
               style={{
                 top: `${item.topPercent}%`,
                 left: `${item.leftPercent}%`,
-                color: '#000000',
+                
               }}
               dir="rtl"
             >

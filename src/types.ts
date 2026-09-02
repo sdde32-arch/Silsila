@@ -81,7 +81,8 @@ export type ExerciseType =
   | 'fill-blank'
   | 'meaning-choice'
   | 'arabic-choice'
-  | 'sequence-choice';
+  | 'sequence-choice'
+  | 'english-fill-blank';
 
 export type DirectionType = 'arabic-to-meaning' | 'meaning-to-arabic';
 

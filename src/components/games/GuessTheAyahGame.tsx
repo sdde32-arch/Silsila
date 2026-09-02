@@ -344,7 +344,7 @@ export const GuessTheAyahGame: React.FC<GuessTheAyahGameProps> = ({
 
                   {/* Arabic and Full Reference text reveal */}
                   <div className="text-right py-0.5" dir="rtl">
-                    <p className="font-quran font-extrabold text-sm sm:text-base text-black dark:text-slate-100" style={{ color: '#000000' }}>
+                    <p className="font-quran font-extrabold text-sm sm:text-base text-black dark:text-slate-100" style={{   }}>
                       {roundData.targetAyah.arabic}
                     </p>
                   </div>

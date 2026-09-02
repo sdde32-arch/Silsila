@@ -112,6 +112,10 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
       return fullText.trim();
     }
 
+    if (type === 'english-fill-blank') {
+      return promptText || '';
+    }
+
     if (direction === 'meaning-to-arabic') {
       const correctOpt = options.find((o) => o.isCorrect);
       return correctOpt ? correctOpt.text : options[0]?.text || '';
@@ -126,8 +130,18 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
 
   // Extract all Arabic text relevant to this exercise to find detected Tajweed rules
   const allExerciseArabicText = useMemo(() => {
+    if (type === 'english-fill-blank') {
+      return {
+        strategy: 'Contextual Meaning',
+        badgeColor: 'bg-emerald-100/90 text-emerald-800 border-emerald-300/80',
+        text: 'Look at the Arabic text and try to recall the general meaning. Look for familiar root words to connect to the English blanks.'
+      };
+    }
     if (type === 'fill-blank') {
       return `${ayahWithBlanks.replace(/___/g, ' ')} ${wordBank.join(' ')}`;
+    }
+    if (type === 'english-fill-blank') {
+      return promptText || '';
     }
     if (direction === 'meaning-to-arabic') {
       return options.map((o) => o.text).join(' ');
@@ -178,7 +192,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
 
   // Automatically scroll the container to the active blanked-out word if the verse overflows
   useEffect(() => {
-    if (type !== 'fill-blank') return;
+    if (type !== 'fill-blank' && type !== 'english-fill-blank') return;
 
     const scrollTimer = setTimeout(() => {
       const activeEl = blankRefs.current[activeBlankIndex];
@@ -341,7 +355,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
   const handleCheckAnswer = () => {
     let isCorrect = false;
 
-    if (type === 'fill-blank') {
+    if (type === 'fill-blank' || type === 'english-fill-blank') {
       if (filledBlanks.length !== blankCount) return;
       isCorrect = filledBlanks.every((word, idx) => word === correctBlanks[idx]);
     } else {
@@ -356,14 +370,14 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
   };
 
   const isCheckDisabled =
-    type === 'fill-blank' ? filledBlanks.length < blankCount : !selectedOptionId;
+    (type === 'fill-blank' || type === 'english-fill-blank') ? filledBlanks.length < blankCount : !selectedOptionId;
 
   // Helper to render letter-by-letter Tajweed clickable spans for a snippet of Arabic text
   const renderInteractiveTextSegment = (textChunk: string, baseChunkKey: string) => {
     const words = parseAyahIntoTajweedWords(textChunk);
 
     return (
-      <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-black font-bold" dir="rtl" style={{ color: '#000000' }}>
+      <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-black font-bold" dir="rtl" style={{   }}>
         {words.map((w, wIdx) => (
           <span key={`${baseChunkKey}-w-${wIdx}`} className="inline-flex items-center">
             {w.segments.map((seg, sIdx) => {
@@ -438,6 +452,57 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
   };
 
   // Render Arabic text with slotted blank boxes & interactive Tajweed letter spans
+
+  const renderEnglishBlankAyah = () => {
+    const parts = (ayahWithBlanks || '').split('___');
+
+    return (
+      <div
+        id="exercise-ayah-text-container-english"
+        ref={ayahContainerRef}
+        className="font-sans text-base sm:text-lg text-slate-800 font-bold leading-relaxed text-center my-4 select-none max-h-[300px] sm:max-h-[360px] overflow-y-auto overflow-x-hidden scroll-smooth px-3 py-4 rounded-2xl border border-slate-200/70 bg-[#FCFBF7]/90 shadow-inner custom-scrollbar"
+        tabIndex={0}
+      >
+        <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-2">
+          {parts.map((part, i) => {
+            const isTargetBlank = i < parts.length - 1;
+            const isFilled = Boolean(filledBlanks[i]);
+            const isCurrentlyActive = isTargetBlank && i === activeBlankIndex && !isFilled;
+
+            return (
+              <React.Fragment key={i}>
+                <span className="inline-flex items-center text-slate-700">{part}</span>
+                {isTargetBlank && (
+                  <button
+                    id={`exercise-blank-slot-${i}`}
+                    ref={(el) => {
+                      blankRefs.current[i] = el;
+                    }}
+                    type="button"
+                    onClick={() => handleRemoveBlank(i)}
+                    className={`inline-flex items-center justify-center min-w-[80px] h-10 min-h-[40px] px-3 align-middle rounded-xl border-2 transition-all font-sans text-sm font-bold active:scale-95 ${
+                      isFilled
+                        ? status === 'correct'
+                          ? 'border-[#10B981] bg-[#ECFDF5] text-[#059669] shadow-xs'
+                          : status === 'incorrect'
+                          ? 'border-[#EF4444] bg-[#FEF2F2] text-[#B91C1C] shadow-xs'
+                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs hover:border-slate-400 dark:hover:border-slate-500'
+                        : isCurrentlyActive
+                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-4 ring-indigo-500/20 scale-[1.02]'
+                        : 'border-slate-200 bg-slate-50 text-slate-400 border-dashed hover:border-slate-300'
+                    }`}
+                  >
+                    {isFilled ? filledBlanks[i] : '___'}
+                  </button>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderBlankAyah = () => {
     const parts = ayahWithBlanks.split('___');
 
@@ -447,7 +512,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
         ref={ayahContainerRef}
         dir="rtl"
         className="font-quran text-2xl sm:text-3xl text-black font-bold leading-[2.5] text-center my-4 select-none dark:text-slate-100 max-h-[300px] sm:max-h-[360px] overflow-y-auto overflow-x-hidden scroll-smooth px-3 py-2 rounded-2xl border border-slate-200/70 bg-[#FCFBF7]/90 dark:bg-slate-900/40 shadow-inner custom-scrollbar"
-        style={{ fontFamily, color: '#000000' }}
+        style={{ fontFamily,   }}
         tabIndex={0}
         aria-label="Quranic Ayah Text with Blank Spaces"
       >
@@ -460,7 +525,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
             return (
               <React.Fragment key={i}>
                 {showTajweed ? (
-                  <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-black font-bold" dir="rtl" style={{ color: '#000000' }}>
+                  <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-black font-bold" dir="rtl" style={{   }}>
                     {annotateText(part)}
                   </span>
                 ) : (
@@ -509,7 +574,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
         <div className="flex items-center justify-between gap-3">
           <button
             onClick={onClose}
-            className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-600 flex items-center justify-center transition-all shadow-2xs hover:scale-105 active:scale-95"
+            className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 flex items-center justify-center transition-all shadow-2xs hover:scale-105 active:scale-95"
             title="Exit Session"
             aria-label="Exit Session"
           >
@@ -533,15 +598,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
             <Badge variant="warm" size="sm">
               {ayahReference}
             </Badge>
-            <label className="flex items-center gap-1.5 cursor-pointer bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-2xs select-none">
-              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Tajweed</span>
-              <input 
-                type="checkbox" 
-                checked={showTajweed} 
-                onChange={(e) => setShowTajweed(e.target.checked)}
-                className="w-3.5 h-3.5 accent-emerald-500 rounded-sm cursor-pointer" 
-              />
-            </label>
+
           </div>
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
             Step {progressCurrent} of {progressTotal}
@@ -556,6 +613,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
           <div className="space-y-1">
             <h3 className="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight">
               {type === 'fill-blank' && 'Fill in the Missing Word'}
+              {type === 'english-fill-blank' && 'English Translation Recall'}
               {type === 'meaning-choice' && 'Quranic Translation & Meaning'}
               {type === 'arabic-choice' && 'Recognize the Arabic Ayah'}
               {type === 'sequence-choice' && 'Sequence Recall (What comes next?)'}
@@ -571,21 +629,6 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
             )}
           </div>
 
-          {/* Tajweed Letters Highlight Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setShowTajweedLetters(!showTajweedLetters)}
-            className={`px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95 text-xs font-bold shrink-0 ${
-              showTajweedLetters
-                ? 'bg-amber-100/90 text-amber-900 border border-amber-300'
-                : 'bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200'
-            }`}
-            title={showTajweedLetters ? 'Tajweed Letter Highlighting: ON (Tap to toggle)' : 'Tajweed Letter Highlighting: OFF'}
-            aria-label="Toggle Tajweed letter highlights"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span className="hidden sm:inline">Tajweed</span>
-          </button>
         </div>
 
         {/* Tajweed Rules Quick Category Chips Filter (Discovered in this Ayah) */}
@@ -599,7 +642,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
               className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold transition-all cursor-pointer ${
                 activeCategoryFilter === 'all'
                   ? 'bg-amber-600 text-white shadow-2xs'
-                  : 'bg-white text-slate-700 hover:bg-amber-100/70 border border-amber-200/80'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-100/70 dark:hover:bg-amber-900/40 border border-amber-200/80 dark:border-amber-800/80'
               }`}
             >
               All Rules
@@ -625,7 +668,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
                   className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold transition-all cursor-pointer border ${
                     isActive
                       ? `${rule.colorScheme.badgeBg} ${rule.colorScheme.badgeText} ${rule.colorScheme.badgeBorder} ring-1 ring-amber-500 shadow-2xs`
-                      : `bg-white hover:${rule.colorScheme.badgeBg} text-slate-800 border-slate-200`
+                      : `bg-white dark:bg-slate-800 hover:${rule.colorScheme.badgeBg} text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700`
                   }`}
                   title={`Click to highlight and view rule: ${rule.name}`}
                 >
@@ -646,6 +689,21 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
         )}
 
         {/* Native Audio Player Widget for Target Ayah */}
+        {/* Optional Bismillah for Verse 1 (if not Fatiha/Tawbah) */}
+        {ayahNumber === 1 && surahNumber && surahNumber !== 1 && surahNumber !== 9 && (
+          <div className="text-center py-3 px-3 mb-2 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+             <InteractiveTajweedAyah
+                arabicText="بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
+                fontFamily={fontFamily}
+                fontSizePx={24}
+                highlightCategory={activeCategoryFilter}
+                showTajweedIndicators={showTajweedLetters}
+                onLetterTap={(segment) => setSelectedTajweedSegment(segment)}
+              />
+          </div>
+        )}
+        
+        {/* Native Audio Player Widget for Target Ayah */}
         <ExerciseAyahAudioPlayer
           surahNumber={surahNumber}
           ayahNumber={ayahNumber}
@@ -655,6 +713,45 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
         />
 
         {/* Dynamic Exercise Body */}
+
+        {type === 'english-fill-blank' && (
+          <div className="space-y-4">
+            {promptText && (
+              <div className="bg-[#FAF9F5] p-5 rounded-2xl border border-slate-100 text-center">
+                <InteractiveTajweedAyah
+                  arabicText={promptText}
+                  fontFamily={fontFamily}
+                  fontSizePx={28}
+                  highlightCategory={activeCategoryFilter}
+                  showTajweedIndicators={showTajweedLetters}
+                  onLetterTap={(segment) => setSelectedTajweedSegment(segment)}
+                />
+              </div>
+            )}
+
+            {renderEnglishBlankAyah()}
+
+            <div className="pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Word Bank (Tap word to insert)
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                {availableWords.map((word, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSelectWord(word, index)}
+                    className="min-h-[44px] h-11 px-5 rounded-xl bg-[#FAF9F5] hover:bg-slate-100 border border-slate-300 font-sans text-sm font-extrabold text-slate-800 transition-all shadow-2xs hover:scale-105 active:scale-95"
+                  >
+                    {word}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {type === 'fill-blank' && (
           <div className="space-y-4">
             {promptText && (
@@ -683,7 +780,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
                     onClick={() => handleSelectWord(word, index)}
                     className="min-h-[48px] h-12 px-6 rounded-2xl bg-[#FAF9F5] hover:bg-slate-100 border border-slate-300 font-quran text-xl font-extrabold text-black transition-all shadow-2xs hover:scale-105 active:scale-95 dark:text-slate-100"
                     dir="rtl"
-                    style={{ fontFamily, color: '#000000' }}
+                    style={{ fontFamily,   }}
                   >
                     {word}
                   </button>
@@ -694,7 +791,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
         )}
 
         {/* Choice Variants (Meaning, Arabic, Sequence) */}
-        {type !== 'fill-blank' && (
+        {type !== 'fill-blank' && type !== 'english-fill-blank' && (
           <div className="space-y-4">
             {/* Prompt Display with Interactive Tajweed Letter Highlighting */}
             <div className="bg-[#FAF9F5] p-5 rounded-2xl border border-slate-100 text-center">
@@ -721,7 +818,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
                 const isArabicOption = type === 'arabic-choice' || type === 'sequence-choice';
 
                 let cardStyle =
-                  'bg-white border border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50';
+                  'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700';
 
                 if (isSelected && status === 'idle') {
                   cardStyle =

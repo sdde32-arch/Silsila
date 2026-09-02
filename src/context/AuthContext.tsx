@@ -1,21 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import {
-  User,
-  auth,
-  signInWithGooglePopup,
-  signInAnonymouslyUser,
-  signOutUser,
-  onAuthStateChanged,
-} from '../services/firebase';
-import {
-  checkUserExistsInFirestore,
-  loadAllUserDataFromFirestore,
-  initializeNewUserInFirestore,
-  setActiveUserUid,
-  setupBackgroundSyncListeners,
-} from '../services/firestoreSync';
+import { User } from '../services/firebase';
 import { MemorizationPlan } from '../types';
 import { isOnboardingCompleted, setOnboardingCompleted } from '../components/onboarding/OnboardingFlow';
+import { setActiveUserUid } from '../services/firestoreSync';
 
 interface AuthContextType {
   user: User | null;
@@ -30,125 +17,49 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const LOCAL_GUEST_USER: User = {
+  uid: 'local-guest-user',
+  isAnonymous: true,
+  displayName: 'Guest Seeker',
+  email: null,
+  emailVerified: false,
+  phoneNumber: null,
+  photoURL: null,
+  providerId: 'anonymous',
+  tenantId: null,
+  providerData: [],
+  metadata: {},
+  refreshToken: '',
+  getIdToken: async () => '',
+  getIdTokenResult: async () => ({} as any),
+  reload: async () => {},
+  delete: async () => {},
+  toJSON: () => ({}),
+} as unknown as User;
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   useEffect(() => {
-    // Setup background Firestore syncing listeners
-    const cleanupSync = setupBackgroundSyncListeners();
-
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        setActiveUserUid(currentUser.uid);
-        try {
-          // Check if user already exists in Firestore
-          const exists = await checkUserExistsInFirestore(currentUser.uid);
-          if (exists) {
-            // Load user data from Firestore into local memory & state
-            const loaded = await loadAllUserDataFromFirestore(currentUser.uid);
-            if (loaded.hasPlan) {
-              setOnboardingCompleted();
-              setIsNewUser(false);
-            } else {
-              setIsNewUser(!isOnboardingCompleted());
-            }
-          } else {
-            // New user without a cloud profile yet
-            setIsNewUser(true);
-          }
-        } catch (err) {
-          console.error('Error during Firestore auth bootstrap:', err);
-          // Fallback to local onboarding check
-          setIsNewUser(!isOnboardingCompleted());
-        }
-      } else {
-        setActiveUserUid(null);
-        setIsNewUser(false);
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      cleanupSync();
-      unsubscribe();
-    };
+    // Force local guest user and bypass Firebase
+    setUser(LOCAL_GUEST_USER);
+    setActiveUserUid(LOCAL_GUEST_USER.uid);
+    setIsNewUser(!isOnboardingCompleted());
+    setLoading(false);
   }, []);
 
-  const signInWithGoogle = async () => {
-    setLoading(true);
-    try {
-      const loggedInUser = await signInWithGooglePopup();
-      setUser(loggedInUser);
-      setActiveUserUid(loggedInUser.uid);
-      const exists = await checkUserExistsInFirestore(loggedInUser.uid);
-      if (exists) {
-        await loadAllUserDataFromFirestore(loggedInUser.uid);
-        setOnboardingCompleted();
-        setIsNewUser(false);
-      } else {
-        setIsNewUser(true);
-      }
-    } catch (err) {
-      console.error('Google Sign In Failed:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signInAsGuest = async () => {
-    setLoading(true);
-    try {
-      const guestUser = await signInAnonymouslyUser();
-      setUser(guestUser);
-      setActiveUserUid(guestUser.uid);
-      const exists = await checkUserExistsInFirestore(guestUser.uid);
-      if (exists) {
-        await loadAllUserDataFromFirestore(guestUser.uid);
-        setOnboardingCompleted();
-        setIsNewUser(false);
-      } else {
-        setIsNewUser(true);
-      }
-    } catch (err) {
-      console.error('Guest Sign In Failed:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signOut = async () => {
-    setLoading(true);
-    try {
-      await signOutUser();
-      setUser(null);
-      setActiveUserUid(null);
-      setIsNewUser(false);
-    } catch (err) {
-      console.error('Sign Out Failed:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const signInWithGoogle = async () => {};
+  const signInAsGuest = async () => {};
+  const signOut = async () => {};
 
   const completeOnboarding = async (plan: MemorizationPlan) => {
-    if (user) {
-      await initializeNewUserInFirestore(user, plan);
-      setOnboardingCompleted();
-      setIsNewUser(false);
-    }
+    setOnboardingCompleted();
+    setIsNewUser(false);
   };
 
-  const refreshUserData = async () => {
-    if (user) {
-      await loadAllUserDataFromFirestore(user.uid);
-    }
-  };
+  const refreshUserData = async () => {};
 
   return (
     <AuthContext.Provider

@@ -880,25 +880,9 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                     </p>
                   )}
 
-                  <div className="flex flex-col items-center gap-2 pt-1">
-                    <p className="text-[11px] sm:text-xs text-slate-700 italic font-medium text-center px-4">
-                      "{lessonData.ayah.translation}"
-                    </p>
-                    <button
-                      onClick={() => {
-                        if ('speechSynthesis' in window) {
-                           const utterance = new SpeechSynthesisUtterance(lessonData.ayah.translation);
-                           utterance.lang = 'en-US';
-                           window.speechSynthesis.cancel();
-                           window.speechSynthesis.speak(utterance);
-                        }
-                      }}
-                      className="w-7 h-7 rounded-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-indigo-600 flex items-center justify-center cursor-pointer transition-colors"
-                      title="Read Translation Aloud"
-                    >
-                      <Volume2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <p className="text-[11px] sm:text-xs text-slate-700 italic font-medium text-center">
+                    "{lessonData.ayah.translation}"
+                  </p>
 
                   {/* Compact Audio Station Control Row */}
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -1178,48 +1162,6 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             )}
 
             {/* STEP 5: BLIND ACTIVE RECALL */}
-            {/* STEP 3: ENGLISH TRANSLATION MEMORIZATION */}
-            {currentStep.stepType === 'english-translation' && (
-              <div className="space-y-4 animate-in fade-in duration-300">
-                <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                  <div className="text-center space-y-2">
-                    <span className="px-3 py-1 rounded-full bg-emerald-100/80 border border-emerald-300/60 text-emerald-900 font-extrabold text-xs inline-flex shadow-2xs">
-                      Meaning & Translation
-                    </span>
-                    <p className="font-quran text-slate-900 leading-[2.2] text-center dark:text-slate-100" dir="rtl" style={{ fontSize: `${arabicFontSizePx}px` }}>
-                      {lessonData.ayah.arabic}
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-center relative space-y-4">
-                     <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
-                       "{lessonData.ayah.translation}"
-                     </p>
-                     
-                     <button
-                        onClick={() => {
-                          if ('speechSynthesis' in window) {
-                             const utterance = new SpeechSynthesisUtterance(lessonData.ayah.translation);
-                             utterance.lang = 'en-US';
-                             utterance.rate = 0.9;
-                             window.speechSynthesis.cancel();
-                             window.speechSynthesis.speak(utterance);
-                          }
-                        }}
-                        className="mx-auto w-10 h-10 rounded-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 flex items-center justify-center transition-colors cursor-pointer shadow-sm"
-                        title="Listen to English Translation"
-                     >
-                        <Volume2 className="w-5 h-5" />
-                     </button>
-                  </div>
-                  
-                  <div className="pt-2 text-center">
-                    <p className="text-xs text-slate-500 font-medium">Read the translation and tap the audio button to hear it. Memorize the core meaning before proceeding.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {currentStep.stepType === 'active-recall' && (
               <div className="space-y-3.5">
                 {/* Fill-in-the-blank / 2-3 Letters Active Recall Drill */}
@@ -2073,10 +2015,9 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
               >
                 <span>
                   {currentStepIdx === 0 && 'Next: Word Breakdown (Step 2/6) →'}
-                  {currentStepIdx === 1 && 'Next: Translation Recall (Step 3/6) →'}
-                  {currentStepIdx === 2 && 'Next: Fill-in-the-Blank Recall (Step 4/6) →'}
-                  {currentStepIdx === 3 && 'Next: Blur & Self-Recite (Step 5/6) →'}
-                  {currentStepIdx === 4 && 'Next: Full Blind Scoring (Step 6/6) →'}
+                  {currentStepIdx === 1 && 'Next: Shadowing Drill (Step 3/6) →'}
+                  {currentStepIdx === 2 && 'Next: Self-Recite (Step 4/6) →'}
+                  {currentStepIdx === 3 && 'Next: Active Recall Test (Step 5/5) →'}
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>

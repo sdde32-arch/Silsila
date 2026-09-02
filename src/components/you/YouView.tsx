@@ -129,10 +129,10 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenPlanModal }) => {
       <header className="flex items-center justify-between px-0.5 pt-1">
         <div>
           <h1 className="font-black text-lg sm:text-xl text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
-            You & Settings
+            My Hifz Journey
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Active Plan, Niyyah Journal & Preferences
+            Your connection, intentions & preferences
           </p>
         </div>
 

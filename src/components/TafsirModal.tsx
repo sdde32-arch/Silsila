@@ -95,7 +95,7 @@ export const TafsirModal: React.FC<TafsirModalProps> = ({
         </div>
 
         <div className="p-4 bg-indigo-50/40 border border-indigo-100 rounded-2xl relative overflow-hidden">
-          <p className="font-quran text-2xl sm:text-3xl text-right text-slate-900 leading-[2.2] tracking-wide mb-3 dark:text-slate-100" dir="rtl" style={{ color: '#000000' }}>
+          <p className="font-quran text-2xl sm:text-3xl text-right text-slate-900 leading-[2.2] tracking-wide mb-3 dark:text-slate-100" dir="rtl" style={{   }}>
             {arabicText}
           </p>
           {transliteration && (
@@ -173,7 +173,7 @@ export const TafsirModal: React.FC<TafsirModalProps> = ({
                         className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-between"
                       >
                         <div>
-                          <span className="font-quran text-xl font-bold text-black leading-[2.2] overflow-visible dark:text-slate-100" dir="rtl" style={{ color: '#000000' }}>
+                          <span className="font-quran text-xl font-bold text-black leading-[2.2] overflow-visible dark:text-slate-100" dir="rtl" style={{   }}>
                             {word}
                           </span>
                         </div>

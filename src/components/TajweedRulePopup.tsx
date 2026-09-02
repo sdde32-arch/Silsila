@@ -189,7 +189,7 @@ export const TajweedRulePopup: React.FC<TajweedRulePopupProps> = ({
             <span
               className="font-quran text-2xl sm:text-3xl font-extrabold text-black px-2 py-0.5 rounded-lg bg-white/90 border border-slate-300 dark:text-slate-100"
               dir="rtl"
-              style={{ color: '#000000' }}
+              style={{   }}
             >
               {segment.wordText}
             </span>

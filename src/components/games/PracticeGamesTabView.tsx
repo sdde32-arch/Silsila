@@ -40,7 +40,7 @@ import { ContinueTheAyahGame } from './ContinueTheAyahGame';
 import { CatchTheAyatGame } from './CatchTheAyatGame';
 import { CoachMarkOverlay } from '../tour/CoachMarkOverlay';
 
-export interface ArcadeGamesTabViewProps {
+export interface PracticeGamesTabViewProps {
   onStartLesson: (surahNumber?: number, ayahNumber?: number) => void;
   onExploreSurah: (surahNumber?: number) => void;
   onOpenSpacedDeck: () => void;
@@ -48,7 +48,7 @@ export interface ArcadeGamesTabViewProps {
   onOpenSurahTest: (surahNumber?: number) => void;
 }
 
-export const ArcadeGamesTabView: React.FC<ArcadeGamesTabViewProps> = ({
+export const PracticeGamesTabView: React.FC<PracticeGamesTabViewProps> = ({
   onStartLesson,
   onExploreSurah,
   onOpenSpacedDeck,
@@ -131,7 +131,7 @@ export const ArcadeGamesTabView: React.FC<ArcadeGamesTabViewProps> = ({
 
   return (
     <div className="w-full max-w-xl mx-auto pb-24 pt-3 px-3.5 sm:px-4 space-y-4 animate-in fade-in duration-150 text-slate-900 dark:text-slate-100">
-      {/* 1. ARCADE PLAYER HUD & GAMIFIED HEADER */}
+      {/* 1. PRACTICE PLAYER HUD & GAMIFIED HEADER */}
       <header className="relative rounded-3xl bg-gradient-to-br from-slate-950 via-[#0B0F19] to-indigo-950 border border-indigo-500/20 text-white p-4 sm:p-5 shadow-xl overflow-hidden">
         {/* Glow ambient background orbs */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -142,19 +142,19 @@ export const ArcadeGamesTabView: React.FC<ArcadeGamesTabViewProps> = ({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-black shadow-lg shadow-amber-500/25 shrink-0">
-                <Gamepad2 className="w-5 h-5 stroke-[2.5]" />
+                <Target className="w-5 h-5 stroke-[2.5]" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h1 className="text-base sm:text-lg font-black tracking-tight text-white truncate">
-                    Quran Ayah Arcade
+                    Active Recall Drills
                   </h1>
                   <span className="px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tracking-wider shrink-0">
-                    Game Arena
+                    Practice
                   </span>
                 </div>
                 <p className="text-[11.5px] text-slate-300 font-medium truncate">
-                  Sharpen active recall through fast, interactive Quran challenges
+                  Sharpen your memory through fast, interactive Quran challenges
                 </p>
               </div>
             </div>

@@ -13,13 +13,14 @@ import {
   Code2,
   BookOpen,
   Gamepad2,
+  Target,
 } from 'lucide-react';
 import { TabType } from './types';
 import { TodayView } from './components/today/TodayView';
 import { SurahExplorerView } from './components/SurahExplorerView';
 import { ProgressView } from './components/progress/ProgressView';
 import { YouView } from './components/you/YouView';
-import { ArcadeGamesTabView } from './components/games/ArcadeGamesTabView';
+import { PracticeGamesTabView } from './components/games/PracticeGamesTabView';
 import { ExerciseCard } from './components/ExerciseCard';
 import { mulkLessonExercises } from './data/mockExercises';
 import { MemorizationLessonPage } from './components/memorization/MemorizationLessonPage';
@@ -320,7 +321,7 @@ function MainApp() {
 
         {/* TAB 3 (CENTER): ARCADE & GAMES ARENA (Active Recall Games, Quests, 114 Surah Map, Spaced Decks) */}
         {(activeTab === 'games' || activeTab === 'arcade') && (
-          <ArcadeGamesTabView
+          <PracticeGamesTabView
             onStartLesson={handleStartLesson}
             onExploreSurah={handleExploreSurah}
             onOpenSpacedDeck={() => setIsSpacedReviewOpen(true)}
@@ -393,7 +394,7 @@ function MainApp() {
         />
       )}
 
-      {/* Ayah Games Arcade Hub Modal */}
+      {/* Ayah Games Practice Hub Modal */}
       {isGamesHubOpen && (
         <AyahGamesHubModal
           onClose={() => setIsGamesHubOpen(false)}
@@ -498,12 +499,12 @@ function MainApp() {
               <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Mushaf</span>
             </button>
 
-            {/* Tab 3: ARCADE (CENTER GAME FORMAT TAB - BEAUTIFIED HIGHLIGHT) */}
+            {/* Tab 3: PRACTICE */}
             <button
               type="button"
               onClick={() => setActiveTab('games')}
               className="flex-1 h-full flex flex-col items-center justify-center py-0.5 px-0.5 group cursor-pointer"
-              aria-label="Quran Ayah Arcade & Games"
+              aria-label="Quran Ayah Practice & Games"
             >
               <div
                 className={`relative px-3 sm:px-3.5 py-1 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
@@ -512,18 +513,16 @@ function MainApp() {
                     : 'bg-amber-100/80 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 group-hover:scale-105 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/60 shadow-2xs'
                 }`}
               >
-                <Gamepad2 className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${
+                <Target className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${
                   activeTab === 'games' || activeTab === 'arcade' ? 'stroke-[2.5]' : 'stroke-[2.2]'
                 }`} />
-                {/* Gaming dot indicator */}
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border border-white dark:border-black animate-pulse" />
               </div>
               <span className={`text-[10px] sm:text-[10.5px] font-black tracking-tight mt-0.5 whitespace-nowrap transition-colors ${
                 activeTab === 'games' || activeTab === 'arcade'
                   ? 'text-amber-600 dark:text-amber-400'
                   : 'text-amber-800 dark:text-amber-400/90 group-hover:text-amber-600'
               }`}>
-                Arcade
+                Practice
               </span>
             </button>
 
