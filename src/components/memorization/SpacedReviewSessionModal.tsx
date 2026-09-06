@@ -22,9 +22,15 @@ import {
   SELF_SCORE_OPTIONS,
   AyahRetentionRecord,
 } from '../../services/memorizationEngine';
-import { SURAH_CONTENT_DB, AyahDetail } from '../../data/quranVerses';
+import { SURAH_CONTENT_DB, AyahDetail, SurahContent } from '../../data/quranVerses';
 import { ALL_114_SURAHS } from '../../data/quranMetadata';
-import { getAyahAudioUrl } from '../../services/quranDataService';
+import {
+  getAyahAudioUrl,
+  cleanAuthenticTranslation,
+  getSurahCompleteData,
+  getSurahFromCacheOrBundled,
+} from '../../services/quranDataService';
+import { globalAudioManager } from '../../services/globalAudioManager';
 import { AyahNumberBadge } from '../ui/AyahNumberBadge';
 import { useScrollLock } from '../../hooks/useScrollLock';
 
@@ -67,15 +73,71 @@ export const SpacedReviewSessionModal: React.FC<SpacedReviewSessionModalProps> =
   const [sessionFinished, setSessionFinished] = useState(false);
   const [reviewsCompleted, setReviewsCompleted] = useState(0);
   const [selectedConfusionAyah, setSelectedConfusionAyah] = useState<string>('');
+  const [loadedSurahs, setLoadedSurahs] = useState<Record<number, SurahContent>>({});
+  const [isLoadingAyah, setIsLoadingAyah] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const currentRecord = dueQueue[currentIndex];
   const surahMeta = currentRecord ? ALL_114_SURAHS.find((s) => s.number === currentRecord.surahId) : null;
-  const surahData = currentRecord ? SURAH_CONTENT_DB[currentRecord.surahId] || SURAH_CONTENT_DB[1] : null;
+  const surahData: SurahContent | null = currentRecord
+    ? loadedSurahs[currentRecord.surahId] ||
+      getSurahFromCacheOrBundled(currentRecord.surahId) ||
+      SURAH_CONTENT_DB[currentRecord.surahId] ||
+      null
+    : null;
   const ayahData: AyahDetail | undefined =
-    surahData?.ayahs.find((a) => a.number === currentRecord?.ayahNumber) || surahData?.ayahs[0];
-  const audioUrl = currentRecord && ayahData ? getAyahAudioUrl(currentRecord.surahId, ayahData.number) : '';
+    surahData?.ayahs?.find((a) => a.number === currentRecord?.ayahNumber);
+  const audioUrl = currentRecord ? getAyahAudioUrl(currentRecord.surahId, currentRecord.ayahNumber) : '';
+
+  // Asynchronously fetch current surah if not in memory/bundle and preload upcoming surahs in queue
+  useEffect(() => {
+    if (!currentRecord) return;
+    const surahId = currentRecord.surahId;
+    const existing = loadedSurahs[surahId] || getSurahFromCacheOrBundled(surahId);
+
+    if (!existing) {
+      setIsLoadingAyah(true);
+      getSurahCompleteData(surahId)
+        .then((data) => {
+          if (data) {
+            setLoadedSurahs((prev) => ({ ...prev, [surahId]: data }));
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          setIsLoadingAyah(false);
+        });
+    } else {
+      setIsLoadingAyah(false);
+    }
+
+    // Preload next upcoming surahs in the queue
+    for (let i = currentIndex + 1; i < Math.min(currentIndex + 4, dueQueue.length); i++) {
+      const nextId = dueQueue[i]?.surahId;
+      if (nextId && !loadedSurahs[nextId] && !getSurahFromCacheOrBundled(nextId)) {
+        getSurahCompleteData(nextId).catch(() => {});
+      }
+    }
+  }, [currentRecord?.surahId, currentIndex, dueQueue]);
+
+  // Stop all audio on modal mount and unmount
+  useEffect(() => {
+    globalAudioManager.stopAll();
+    return () => {
+      globalAudioManager.stopAll();
+    };
+  }, []);
+
+  // Register review audio with GlobalAudioManager
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    const unregister = globalAudioManager.registerAudioElement(audio, 'spaced-review-audio', () => {
+      setIsPlayingAudio(false);
+    });
+    return () => unregister();
+  }, [audioRef.current, audioUrl]);
 
   useEffect(() => {
     setIsRevealed(false);
@@ -89,6 +151,7 @@ export const SpacedReviewSessionModal: React.FC<SpacedReviewSessionModalProps> =
       audioRef.current.pause();
       setIsPlayingAudio(false);
     } else {
+      globalAudioManager.stopAll('spaced-review-audio', audioRef.current);
       audioRef.current.currentTime = 0;
       audioRef.current
         .play()
@@ -154,6 +217,7 @@ export const SpacedReviewSessionModal: React.FC<SpacedReviewSessionModalProps> =
 
           <button
             onClick={() => {
+              globalAudioManager.stopAll();
               onSessionComplete?.();
               onClose();
             }}
@@ -181,7 +245,10 @@ export const SpacedReviewSessionModal: React.FC<SpacedReviewSessionModalProps> =
         {/* Top Header */}
         <div className="p-3.5 sm:px-6 py-3 flex items-center justify-between gap-3 border-b border-slate-100 bg-[#FAF9F5]">
           <button
-            onClick={onClose}
+            onClick={() => {
+              globalAudioManager.stopAll();
+              onClose();
+            }}
             className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
             title="Return back"
           >
@@ -225,9 +292,13 @@ export const SpacedReviewSessionModal: React.FC<SpacedReviewSessionModalProps> =
 
             {/* Translation Prompt */}
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 text-center">
-              <p className="text-xs sm:text-sm text-slate-600 font-serif italic">
-                "{ayahData?.translation}"
-              </p>
+              {isLoadingAyah && !ayahData ? (
+                <p className="text-xs text-slate-500 italic">Loading authentic verse prompt...</p>
+              ) : (
+                <p className="text-xs sm:text-sm text-slate-900 font-semibold leading-relaxed">
+                  "{cleanAuthenticTranslation(ayahData?.translation || '')}"
+                </p>
+              )}
             </div>
 
             {/* Arabic Script: Hidden vs Revealed */}
@@ -237,12 +308,12 @@ export const SpacedReviewSessionModal: React.FC<SpacedReviewSessionModalProps> =
                   dir="rtl"
                   className="p-5 rounded-2xl bg-gradient-to-b from-indigo-50/40 to-slate-50 border border-indigo-100 text-center leading-[2.6] animate-in fade-in duration-200"
                 >
-                  <p className="font-quran text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
+                  <p className="font-quran text-2xl sm:text-3xl font-bold text-black dark:text-slate-100">
                     {ayahData?.arabic}
                   </p>
                 </div>
                 {ayahData?.transliteration && (
-                  <p className="text-xs sm:text-sm text-amber-900/90 font-serif italic text-center px-2">
+                  <p className="text-xs sm:text-sm text-amber-950 font-serif italic font-semibold text-center px-2">
                     {ayahData.transliteration}
                   </p>
                 )}

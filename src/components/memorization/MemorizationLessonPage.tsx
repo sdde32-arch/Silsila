@@ -62,7 +62,15 @@ import {
   quranAudioPreloader,
   globalAudioManager,
 } from '../../services/quranAudioEngine';
-import { getStoredReaderSettings, saveStoredReaderSettings, getSurahCompleteData } from '../../services/quranDataService';
+import { getStoredReaderSettings, saveStoredReaderSettings, getSurahCompleteData, cleanAuthenticTranslation } from '../../services/quranDataService';
+import {
+  ENGLISH_READERS,
+  EnglishReaderOption,
+  getSelectedEnglishReader,
+  setSelectedEnglishReader,
+  playEnglishTranslationAudio,
+} from '../../services/englishAudioService';
+import { EnglishReaderSelectorModal } from '../EnglishReaderSelectorModal';
 import { WordPronunciationModal } from './WordPronunciationModal';
 import { AyahNumberBadge } from '../ui/AyahNumberBadge';
 import { InteractiveTajweedAyah } from '../InteractiveTajweedAyah';
@@ -123,6 +131,41 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
   const [currentRepeat, setCurrentRepeat] = useState(1);
   const [audioProgressPercent, setAudioProgressPercent] = useState<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // English Translation Reader State
+  const [selectedEnglishReader, setSelectedEnglishReaderState] = useState<EnglishReaderOption>(() =>
+    getSelectedEnglishReader()
+  );
+  const [isEnglishReaderModalOpen, setIsEnglishReaderModalOpen] = useState(false);
+  const [isPlayingEnglishAudio, setIsPlayingEnglishAudio] = useState(false);
+  const [englishAudioProgress, setEnglishAudioProgress] = useState(0);
+  const englishAudioStopRef = useRef<(() => void) | null>(null);
+
+  // Stop all audio across the application upon mount and unmount of the lesson page
+  useEffect(() => {
+    globalAudioManager.stopAll();
+    return () => {
+      globalAudioManager.stopAll();
+      if (englishAudioStopRef.current) {
+        try {
+          englishAudioStopRef.current();
+        } catch {}
+      }
+    };
+  }, []);
+
+  // Register main lesson audio element with GlobalAudioManager
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    const unregister = globalAudioManager.registerAudioElement(audio, 'mem-lesson-reference', () => {
+      setIsPlayingAudio(false);
+      setHighlightedWordIdx(null);
+    });
+    return () => {
+      unregister();
+    };
+  }, [audioRef.current]);
 
   // Surah overview verse audio player
   const [playingSurahAudioAyah, setPlayingSurahAudioAyah] = useState<number | null>(null);
@@ -302,6 +345,16 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
     setIsFullBlindRevealed(false);
     setIsPeekRevealed(false);
 
+    // Stop English audio if active
+    if (englishAudioStopRef.current) {
+      try {
+        englishAudioStopRef.current();
+      } catch {}
+      englishAudioStopRef.current = null;
+    }
+    setIsPlayingEnglishAudio(false);
+    setEnglishAudioProgress(0);
+
     // Save exact position for synchronization across all tabs
     saveCurrentStudyPosition(activeSurahNumber, activeAyahNumber, currentStepIdx + 1);
 
@@ -384,6 +437,19 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
 
   const handlePlayReferenceAudio = () => {
     if (!audioRef.current) return;
+
+    // Immediately stop English audio if active
+    if (englishAudioStopRef.current) {
+      try {
+        englishAudioStopRef.current();
+      } catch {}
+      englishAudioStopRef.current = null;
+    }
+    setIsPlayingEnglishAudio(false);
+    setEnglishAudioProgress(0);
+
+    globalAudioManager.stopAll('mem-lesson-reference', audioRef.current);
+
     if (!audioRef.current.src || audioRef.current.src !== currentStep.audioUrl) {
       audioRef.current.src = currentStep.audioUrl;
     }
@@ -401,6 +467,65 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
         setIsPlayingAudio(false);
         setHighlightedWordIdx(null);
       });
+  };
+
+  // English Translation Audio Player with Reader Choice & Progress
+  const handleToggleEnglishAudio = async () => {
+    if (isPlayingEnglishAudio) {
+      if (englishAudioStopRef.current) {
+        try {
+          englishAudioStopRef.current();
+        } catch {}
+        englishAudioStopRef.current = null;
+      }
+      globalAudioManager.stopAll();
+      setIsPlayingEnglishAudio(false);
+      setEnglishAudioProgress(0);
+      return;
+    }
+
+    // Stop Arabic reference audio if playing
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+      setHighlightedWordIdx(null);
+    }
+    globalAudioManager.stopAll('english-audio');
+
+    setIsPlayingEnglishAudio(true);
+    setEnglishAudioProgress(0);
+
+    try {
+      const control = await playEnglishTranslationAudio(
+        activeSurahNumber,
+        activeAyahNumber,
+        lessonData.ayah.translation,
+        {
+          playbackSpeed: audioSpeed,
+          onTimeUpdate: (cur, dur) => {
+            if (dur > 0) {
+              setEnglishAudioProgress(Math.min(100, Math.max(0, (cur / dur) * 100)));
+            }
+          },
+          onEnded: () => {
+            setIsPlayingEnglishAudio(false);
+            setEnglishAudioProgress(0);
+            englishAudioStopRef.current = null;
+          },
+          onError: () => {
+            setIsPlayingEnglishAudio(false);
+            setEnglishAudioProgress(0);
+            englishAudioStopRef.current = null;
+          },
+        }
+      );
+
+      englishAudioStopRef.current = control.stop;
+    } catch {
+      setIsPlayingEnglishAudio(false);
+      setEnglishAudioProgress(0);
+      englishAudioStopRef.current = null;
+    }
   };
 
   const handleToggleAudio = () => {
@@ -656,6 +781,23 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
 
   const isCurrentAyahMemorized = isAyahMemorized(activeSurahNumber, activeAyahNumber);
 
+  // Safe exit stopping all audios
+  const handleCloseLesson = () => {
+    if (englishAudioStopRef.current) {
+      try {
+        englishAudioStopRef.current();
+      } catch {}
+      englishAudioStopRef.current = null;
+    }
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+      } catch {}
+    }
+    globalAudioManager.stopAll();
+    onClose();
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-slate-900 flex flex-col font-sans-ui selection:bg-[#FEF7DA] selection:text-[#D97706] pb-20">
       {/* Hidden Audio Player for 6-Step Drills */}
@@ -675,7 +817,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
           <div className="flex items-center justify-between gap-1.5">
             {/* Return Back Button */}
             <button
-              onClick={onClose}
+              onClick={handleCloseLesson}
               className="h-8 px-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95"
               title="Return back"
             >
@@ -847,6 +989,28 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                     </span>
                   </div>
 
+                  {/* Beginning of Surah Opening Banner in accordance with Quranic rules */}
+                  {activeAyahNumber === 1 && activeSurahNumber !== 1 && activeSurahNumber !== 9 && (
+                    <div className="py-2.5 px-3 rounded-xl bg-amber-50/70 dark:bg-slate-800/80 border border-amber-200/80 dark:border-slate-700 text-center space-y-0.5">
+                      <p className="font-quran text-lg sm:text-xl font-bold text-black dark:text-slate-100 leading-normal" dir="rtl">
+                        بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                      </p>
+                      <p className="text-[10.5px] text-amber-950/80 dark:text-slate-300 font-serif italic font-medium">
+                        In the name of Allah, the Entirely Merciful, the Especially Merciful
+                      </p>
+                    </div>
+                  )}
+                  {activeAyahNumber === 1 && activeSurahNumber === 9 && (
+                    <div className="py-2.5 px-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800 text-center space-y-0.5">
+                      <p className="font-quran text-base sm:text-lg font-bold text-black dark:text-slate-100" dir="rtl">
+                        أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَانِ ٱلرَّجِيمِ
+                      </p>
+                      <p className="text-[10px] text-amber-950 dark:text-amber-200 font-sans font-medium">
+                        Surah At-Tawbah starts without the Basmalah • Recitation begins with Isti'adha
+                      </p>
+                    </div>
+                  )}
+
                   {/* Certified Arabic Quran Text - Solid Black, Clear Diacritics */}
                   <div className="py-1 px-1 bg-amber-50/20 rounded-xl">
                     <p
@@ -863,7 +1027,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                               ? 'bg-amber-200 text-black font-black scale-105 shadow-2xs ring-1 ring-amber-400'
                               : 'text-black'
                           }`}
-                          title={`${w.transliteration} — ${w.translation}`}
+                          title={`${w.transliteration} — ${cleanAuthenticTranslation(w.translation)}`}
                         >
                           {w.arabic}
                         </span>
@@ -881,8 +1045,8 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                   )}
 
                   <div className="flex flex-col items-center gap-2 pt-1">
-                    <p className="text-[11px] sm:text-xs text-slate-700 italic font-medium text-center px-4">
-                      "{lessonData.ayah.translation}"
+                    <p className="text-xs sm:text-[13px] text-slate-900 dark:text-slate-100 font-semibold text-center px-4 leading-relaxed">
+                      "{cleanAuthenticTranslation(lessonData.ayah.translation)}"
                     </p>
                     <button
                       onClick={() => {
@@ -1181,40 +1345,131 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             {/* STEP 3: ENGLISH TRANSLATION MEMORIZATION */}
             {currentStep.stepType === 'english-translation' && (
               <div className="space-y-4 animate-in fade-in duration-300">
-                <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                  <div className="text-center space-y-2">
-                    <span className="px-3 py-1 rounded-full bg-emerald-100/80 border border-emerald-300/60 text-emerald-900 font-extrabold text-xs inline-flex shadow-2xs">
-                      Meaning & Translation
+                <div className="p-4 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-5">
+                  {/* Header */}
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2 text-indigo-700">
+                      <BookOpen className="w-4 h-4 stroke-[2.2]" />
+                      <span className="text-xs font-black uppercase tracking-wider">Meaning & Cognitive Anchoring</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                      Ayah {activeAyahNumber}
                     </span>
-                    <p className="font-quran text-slate-900 leading-[2.2] text-center dark:text-slate-100" dir="rtl" style={{ fontSize: `${arabicFontSizePx}px` }}>
+                  </div>
+
+                  {/* Arabic Text Display */}
+                  <div className="p-4 bg-amber-50/40 rounded-2xl border border-amber-200/60 text-center">
+                    <p
+                      className="font-quran text-slate-900 leading-[2.3] text-center"
+                      dir="rtl"
+                      style={{ fontSize: `${arabicFontSizePx}px` }}
+                    >
                       {lessonData.ayah.arabic}
                     </p>
                   </div>
-                  
-                  <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-center relative space-y-4">
-                     <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
-                       "{lessonData.ayah.translation}"
-                     </p>
-                     
-                     <button
-                        onClick={() => {
-                          if ('speechSynthesis' in window) {
-                             const utterance = new SpeechSynthesisUtterance(lessonData.ayah.translation);
-                             utterance.lang = 'en-US';
-                             utterance.rate = 0.9;
-                             window.speechSynthesis.cancel();
-                             window.speechSynthesis.speak(utterance);
-                          }
-                        }}
-                        className="mx-auto w-10 h-10 rounded-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 flex items-center justify-center transition-colors cursor-pointer shadow-sm"
-                        title="Listen to English Translation"
-                     >
-                        <Volume2 className="w-5 h-5" />
-                     </button>
+
+                  {/* English Translation Display */}
+                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-2.5">
+                    <p className="text-sm sm:text-base font-semibold text-slate-900 leading-relaxed max-w-xl mx-auto">
+                      "{lessonData.ayah.translation}"
+                    </p>
+                    <p className="text-[11px] text-slate-600 font-bold">
+                      Authentic Translation • Sahih International
+                    </p>
                   </div>
-                  
-                  <div className="pt-2 text-center">
-                    <p className="text-xs text-slate-500 font-medium">Read the translation and tap the audio button to hear it. Memorize the core meaning before proceeding.</p>
+
+                  {/* English Reader Selector & Audio Player */}
+                  <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-3.5">
+                    {/* Active Reader Row */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-lg">{selectedEnglishReader.avatar}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-black text-slate-900 truncate">
+                              {selectedEnglishReader.name}
+                            </span>
+                            <span className={`text-[9.5px] font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
+                              selectedEnglishReader.type === 'human'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : 'bg-indigo-100 text-indigo-900 border border-indigo-200'
+                            }`}>
+                              {selectedEnglishReader.type === 'human' ? 'Studio Human' : 'Voice'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 truncate">
+                            {selectedEnglishReader.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setIsEnglishReaderModalOpen(true)}
+                        className="h-8 px-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs active:scale-95 shrink-0"
+                        title="Choose another English reader or voice"
+                      >
+                        <Sliders className="w-3 h-3 text-indigo-600" />
+                        <span>Change Voice</span>
+                      </button>
+                    </div>
+
+                    {/* Audio Controls & Progress */}
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        onClick={handleToggleEnglishAudio}
+                        className={`h-11 px-5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all shadow-xs active:scale-95 ${
+                          isPlayingEnglishAudio
+                            ? 'bg-amber-500 hover:bg-amber-600 text-black shadow-amber-200'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
+                        }`}
+                        title={isPlayingEnglishAudio ? 'Pause English narration' : 'Play English narration'}
+                      >
+                        {isPlayingEnglishAudio ? (
+                          <>
+                            <Pause className="w-4 h-4 fill-current" />
+                            <span>Pause English</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 fill-current ml-0.5" />
+                            <span>Listen to English</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Speed pill */}
+                      <button
+                        onClick={handleToggleSpeed}
+                        className="h-9 px-2.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-black cursor-pointer hover:bg-slate-100 transition-all shadow-2xs"
+                        title="Toggle playback speed"
+                      >
+                        {audioSpeed}x
+                      </button>
+
+                      {/* Status indicator */}
+                      <div className="flex-1 min-w-0">
+                        {isPlayingEnglishAudio && (
+                          <div className="space-y-1">
+                            <div className="h-1.5 w-full bg-indigo-200 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-indigo-600 transition-all duration-200 rounded-full"
+                                style={{ width: `${englishAudioProgress}%` }}
+                              />
+                            </div>
+                            <span className="text-[10.5px] text-indigo-700 font-bold block truncate">
+                              Playing English narration...
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pedagogical Guidance */}
+                  <div className="pt-1 text-center">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                      Cognitive anchoring: Associating the Arabic melody with the authentic English meaning deepens long-term retention before blind recall drills.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1897,6 +2152,28 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
               </div>
             </div>
 
+            {/* Surah Bismillah or Isti'adha Opening in accordance with Quranic rules */}
+            {activeSurahNumber !== 1 && activeSurahNumber !== 9 && (
+              <div className="text-center py-4 px-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-2xs space-y-1">
+                <p className="font-quran text-2xl sm:text-3xl font-bold text-black dark:text-slate-100 leading-normal" dir="rtl">
+                  بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                </p>
+                <p className="text-xs text-slate-700 dark:text-slate-300 font-serif italic">
+                  In the name of Allah, the Entirely Merciful, the Especially Merciful
+                </p>
+              </div>
+            )}
+            {activeSurahNumber === 9 && (
+              <div className="text-center py-4 px-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/80 shadow-2xs space-y-1">
+                <p className="font-quran text-xl sm:text-2xl font-bold text-black dark:text-slate-100" dir="rtl">
+                  أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَانِ ٱلرَّجِيمِ
+                </p>
+                <p className="text-[11px] text-amber-950 dark:text-amber-200 font-sans font-medium">
+                  Surah At-Tawbah does not begin with the Basmalah • Recitation begins with Isti'adha
+                </p>
+              </div>
+            )}
+
             {/* Verses List */}
             <div className="space-y-2.5">
               {Array.from({ length: surahMeta.totalAyahs }, (_, i) => i + 1).map((aNum) => {
@@ -1905,8 +2182,8 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                 const lockStatus = isAyahLockedForSabaq(activeSurahNumber, aNum);
                 const isLocked = lockStatus.isLocked;
                 const ayahData = surahContent?.ayahs?.find((a) => a.number === aNum);
-                const arabicText = ayahData?.arabic || 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
-                const transText = ayahData?.translation || 'In the name of Allah, the Entirely Merciful, the Especially Merciful.';
+                const arabicText = ayahData?.arabic || '...';
+                const transText = cleanAuthenticTranslation(ayahData?.translation || '');
 
                 return (
                   <div
@@ -2119,6 +2396,21 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
           onContinue={() => setSelectedWordForDrill(null)}
         />
       )}
+
+      {/* English Reader Selector Modal */}
+      <EnglishReaderSelectorModal
+        isOpen={isEnglishReaderModalOpen}
+        onClose={() => setIsEnglishReaderModalOpen(false)}
+        selectedReaderId={selectedEnglishReader.id}
+        onSelectReader={(reader) => {
+          setSelectedEnglishReader(reader.id);
+          setSelectedEnglishReaderState(reader);
+          // If currently playing English audio, restart with new reader
+          if (isPlayingEnglishAudio) {
+            handleToggleEnglishAudio();
+          }
+        }}
+      />
     </div>
   );
 };

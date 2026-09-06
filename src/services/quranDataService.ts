@@ -160,22 +160,99 @@ export function removeBismillahFromTransliteration(surahNumber: number, ayahNumb
 
 export function removeBismillahFromTranslation(surahNumber: number, ayahNumber: number, text: string): string {
   if (surahNumber === 1 || surahNumber === 9 || ayahNumber !== 1 || !text) return text;
-  return text.replace(/^[\s]*(?:in\s+the\s+name\s+of\s+allah[,\s]+the\s+entirely\s+merciful[,\s]+the\s+especially\s+merciful[.\s]*[-–—:]*)\s*/i, '').trim();
+  return text
+    .replace(/^[\s]*(?:in\s+the\s+name\s+of\s+allah[,\s]+the\s+entirely\s+merciful[,\s]+the\s+especially\s+merciful[.\s]*[-–—:]*)\s*/i, '')
+    .replace(/^[\s]*(?:in\s+the\s+name\s+of\s+god[,\s]+the\s+most\s+gracious[,\s]+the\s+most\s+merciful[.\s]*[-–—:]*)\s*/i, '')
+    .trim();
 }
 
+/**
+ * Ensures English Quran translations are 100% authentic, clear, and devoid of
+ * residual footnote markers (e.g. <sup>1</sup>, [1], (1), trailing footnote digits),
+ * unescaped HTML entities, or synthetic appended numbers.
+ */
 export function stripHtmlTags(text: string): string {
-  if (!text) return text;
-  // Completely remove any <sup>...</sup> elements and their inner content (footnotes)
-  let cleaned = text.replace(/<sup[^>]*>.*?<\/sup>/gi, '');
-  // Remove any remaining HTML tags
+  return cleanAuthenticTranslation(text);
+}
+
+export function cleanAuthenticTranslation(text: string): string {
+  if (!text) return '';
+  let cleaned = text;
+
+  // 1. Remove all <sup>...</sup>, <footnote>...</footnote>, <sub>...</sub> and their internal contents
+  cleaned = cleaned.replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, '');
+  cleaned = cleaned.replace(/<footnote[^>]*>[\s\S]*?<\/footnote>/gi, '');
+  cleaned = cleaned.replace(/<sub[^>]*>[\s\S]*?<\/sub>/gi, '');
+  cleaned = cleaned.replace(/<span class="footnote"[^>]*>[\s\S]*?<\/span>/gi, '');
+
+  // 2. Remove any remaining HTML tags
   cleaned = cleaned.replace(/<[^>]*>?/gmi, '');
-  // Normalize extra spacing
+
+  // 3. Decode all HTML entities
+  cleaned = cleaned
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
+
+  // 4. Remove standalone bracketed or parenthesized footnote numbers like [1], [2], (1)
+  cleaned = cleaned.replace(/\[\d+\]/g, '');
+  cleaned = cleaned.replace(/\(\d+\)/g, '');
+
+  // 5. Remove any synthetic trailing markers like (Ayah 1), [Ayah 2], (Verse 1), etc.
+  cleaned = cleaned.replace(/\s*[\(\[]Ayah\s*\d+[\)\]]/gi, '');
+  cleaned = cleaned.replace(/\s*[\(\[]Verse\s*\d+[\)\]]/gi, '');
+
+  // 6. Remove stray footnote reference digits attached to end of words (e.g. "Allāh1" -> "Allāh", "worlds2" -> "worlds")
+  cleaned = cleaned.replace(/([a-zA-Zāīūḍṣṭẓḥʿ'’])\d{1,2}(?=[,\.\s\?!:;]|$)/g, '$1');
+
+  // 7. Normalize extra whitespace
   cleaned = cleaned.replace(/\s{2,}/g, ' ');
+
   return cleaned.trim();
 }
 
 /** In-memory cache for fetched Surahs */
 const surahCache = new Map<number, SurahContent>();
+
+/**
+ * Synchronously retrieves Surah content if available in-memory, pre-bundled, or localStorage.
+ * Strictly returns the authentic data for the requested surah and NEVER falls back to another Surah.
+ */
+export function getSurahFromCacheOrBundled(surahNumber: number): SurahContent | null {
+  if (surahCache.has(surahNumber)) {
+    return surahCache.get(surahNumber)!;
+  }
+  if (SURAH_CONTENT_DB[surahNumber] && SURAH_CONTENT_DB[surahNumber].ayahs.length >= 1) {
+    const data = SURAH_CONTENT_DB[surahNumber];
+    surahCache.set(surahNumber, data);
+    return data;
+  }
+  try {
+    const localSaved = typeof window !== 'undefined' ? localStorage.getItem(`quran_surah_${surahNumber}_v5`) : null;
+    if (localSaved) {
+      const parsed: SurahContent = JSON.parse(localSaved);
+      if (parsed.ayahs && parsed.ayahs.length >= 1) {
+        surahCache.set(surahNumber, parsed);
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+/**
+ * Synchronously retrieves an Ayah from cache or pre-bundled database if available.
+ */
+export function getAyahDetailFromCacheOrBundled(surahNumber: number, ayahNumber: number): AyahDetail | null {
+  const surah = getSurahFromCacheOrBundled(surahNumber);
+  if (!surah || !surah.ayahs) return null;
+  return surah.ayahs.find((a) => a.number === ayahNumber) || null;
+}
 
 /**
  * Fetch and assemble complete Quran data for ANY of the 114 Surahs.
@@ -192,9 +269,9 @@ export async function getSurahCompleteData(
     return updateAudioUrls(cached, reciterSubfolder);
   }
 
-  // 2. Check local storage cache
+  // 2. Check local storage cache (v5 uses purified authentic translations)
   try {
-    const localSaved = localStorage.getItem(`quran_surah_${surahNumber}_v4`);
+    const localSaved = localStorage.getItem(`quran_surah_${surahNumber}_v5`);
     if (localSaved) {
       const parsed: SurahContent = JSON.parse(localSaved);
       if (parsed.ayahs && parsed.ayahs.length === parsed.totalAyahs) {
@@ -209,32 +286,35 @@ export async function getSurahCompleteData(
   // 3. Check pre-bundled rich data
   if (SURAH_CONTENT_DB[surahNumber] && SURAH_CONTENT_DB[surahNumber].ayahs.length >= SURAH_CONTENT_DB[surahNumber].totalAyahs) {
     const data = SURAH_CONTENT_DB[surahNumber];
+    data.ayahs.forEach((a) => {
+      a.translation = cleanAuthenticTranslation(a.translation);
+    });
     surahCache.set(surahNumber, data);
     return updateAudioUrls(data, reciterSubfolder);
   }
 
   // 4. Fetch full 114 Surah data live from Quran.com API (Context-aware word translations)
-  try {
-    const meta = ALL_114_SURAHS.find((s) => s.number === surahNumber) || {
-      number: surahNumber,
-      name: `Surah ${surahNumber}`,
-      transliteration: `Surah ${surahNumber}`,
-      arabicName: `سورة ${surahNumber}`,
-      translation: `Chapter ${surahNumber}`,
-      totalAyahs: 10,
-      revelationType: 'Meccan' as const,
-      juzNumber: 1,
-      pageNumber: 1,
-    };
+  const meta = ALL_114_SURAHS.find((s) => s.number === surahNumber) || {
+    number: surahNumber,
+    name: `Surah ${surahNumber}`,
+    transliteration: `Surah ${surahNumber}`,
+    arabicName: `سورة ${surahNumber}`,
+    translation: `Chapter ${surahNumber}`,
+    totalAyahs: 10,
+    revelationType: 'Meccan' as const,
+    juzNumber: 1,
+    pageNumber: 1,
+  };
 
+  try {
     const res = await fetch(
       `https://api.quran.com/api/v4/verses/by_chapter/${surahNumber}?words=true&translations=20,57&fields=text_uthmani&word_fields=text_uthmani,translation,transliteration&per_page=300`
     );
 
     if (res.ok) {
       const json = await res.json();
-      if (json.verses && Array.isArray(json.verses)) {
-        const ayahs: AyahDetail[] = json.verses.map((v: any, idx: number) => {
+      if (json.verses && Array.isArray(json.verses) && json.verses.length > 0) {
+        const ayahs: AyahDetail[] = json.verses.map((v: any) => {
           const ayahNum = v.verse_number;
           let arabicText = v.text_uthmani || '';
           
@@ -245,7 +325,7 @@ export async function getSurahCompleteData(
           let transText = englishTranslationObj ? englishTranslationObj.text : '';
           let translitText = transliterationObj ? transliterationObj.text : '';
 
-          transText = stripHtmlTags(transText);
+          transText = cleanAuthenticTranslation(transText);
 
           // Clean Bismillah from Verse 1 for all Surahs other than Al-Fatiha (Surah 1) and At-Tawbah (Surah 9)
           if (ayahNum === 1 && surahNumber !== 1 && surahNumber !== 9) {
@@ -258,10 +338,10 @@ export async function getSurahCompleteData(
           const words = (v.words || [])
             .filter((w: any) => w.char_type_name === 'word')
             .map((w: any, widx: number) => ({
-                            id: widx + 1,
-              arabic: w.text_uthmani || w.text || '',
-              transliteration: w.transliteration?.text || '',
-              translation: stripHtmlTags(w.translation?.text || ''),
+              id: widx + 1,
+              arabic: (w.text_uthmani || w.text || '').trim(),
+              transliteration: (w.transliteration?.text || '').trim(),
+              translation: cleanAuthenticTranslation(w.translation?.text || ''),
             }));
 
           // Remove Bismillah from words array for first Ayah of each non-Fatiha/Tawbah Surah
@@ -275,9 +355,9 @@ export async function getSurahCompleteData(
 
           return {
             number: ayahNum,
-            arabic: arabicText,
-            transliteration: translitText,
-            translation: transText,
+            arabic: arabicText.trim(),
+            transliteration: translitText.trim(),
+            translation: transText.trim(),
             words,
             audioUrl: getAyahAudioUrl(surahNumber, ayahNum, reciterSubfolder),
             isMemorized: false,
@@ -301,7 +381,7 @@ export async function getSurahCompleteData(
 
         surahCache.set(surahNumber, fullContent);
         try {
-          localStorage.setItem(`quran_surah_${surahNumber}_v4`, JSON.stringify(fullContent));
+          localStorage.setItem(`quran_surah_${surahNumber}_v5`, JSON.stringify(fullContent));
         } catch (e) {
           // localStorage full or restricted
         }
@@ -309,23 +389,95 @@ export async function getSurahCompleteData(
       }
     }
   } catch (err) {
-    console.warn(`Could not load full live data for Surah ${surahNumber}:`, err);
+    console.warn(`Could not load full live data from Quran.com for Surah ${surahNumber}:`, err);
+  }
+
+  // 4B. Highly Reliable Secondary Fallback: Al-Quran Cloud API (Authentic Saheeh International)
+  try {
+    const cloudRes = await fetch(
+      `https://api.alquran.cloud/v1/surah/${surahNumber}/editions/quran-uthmani,en.sahih`
+    );
+    if (cloudRes.ok) {
+      const cloudJson = await cloudRes.json();
+      if (cloudJson.data && Array.isArray(cloudJson.data) && cloudJson.data.length >= 2) {
+        const arEdition = cloudJson.data[0];
+        const enEdition = cloudJson.data[1];
+
+        const ayahs: AyahDetail[] = arEdition.ayahs.map((arAyah: any, idx: number) => {
+          const ayahNum = arAyah.numberInSurah;
+          let arabicText = arAyah.text || '';
+          const enAyah = enEdition.ayahs[idx] || {};
+          let transText = cleanAuthenticTranslation(enAyah.text || '');
+
+          if (ayahNum === 1 && surahNumber !== 1 && surahNumber !== 9) {
+            arabicText = removeBismillahFromAyah(surahNumber, ayahNum, arabicText);
+            transText = removeBismillahFromTranslation(surahNumber, ayahNum, transText);
+          }
+
+          const rawWords = arabicText.split(/\s+/).filter(Boolean);
+          const words = rawWords.map((wordStr: string, widx: number) => ({
+            id: widx + 1,
+            arabic: wordStr,
+            transliteration: '',
+            translation: '',
+          }));
+
+          return {
+            number: ayahNum,
+            arabic: arabicText.trim(),
+            transliteration: '',
+            translation: transText.trim(),
+            words,
+            audioUrl: getAyahAudioUrl(surahNumber, ayahNum, reciterSubfolder),
+            isMemorized: false,
+          };
+        });
+
+        const fullContent: SurahContent = {
+          number: surahNumber,
+          name: meta.name,
+          transliteration: meta.transliteration,
+          arabicName: meta.arabicName,
+          translation: meta.translation,
+          totalAyahs: meta.totalAyahs,
+          revelationType: meta.revelationType,
+          juzNumber: meta.juzNumber,
+          pageNumber: meta.pageNumber,
+          background: getSurahBackground(surahNumber, meta),
+          thematicPillars: getThematicPillars(surahNumber),
+          ayahs,
+        };
+
+        surahCache.set(surahNumber, fullContent);
+        try {
+          localStorage.setItem(`quran_surah_${surahNumber}_v5`, JSON.stringify(fullContent));
+        } catch (e) {}
+        return fullContent;
+      }
+    }
+  } catch (cloudErr) {
+    console.warn(`Could not load secondary fallback for Surah ${surahNumber}:`, cloudErr);
   }
 
   // 5. Fallback to pre-bundled Surah content
   if (SURAH_CONTENT_DB[surahNumber]) {
-    return updateAudioUrls(SURAH_CONTENT_DB[surahNumber], reciterSubfolder);
+    const bundled = SURAH_CONTENT_DB[surahNumber];
+    bundled.ayahs.forEach((a) => {
+      a.translation = cleanAuthenticTranslation(a.translation);
+    });
+    return updateAudioUrls(bundled, reciterSubfolder);
   }
 
-  // 6. Generic synthesized fallback for instant display
-  const meta = ALL_114_SURAHS.find((s) => s.number === surahNumber) || ALL_114_SURAHS[0];
+  // 6. Generic synthesized fallback for instant display without artificial number suffixes
   const fallbackAyahs: AyahDetail[] = Array.from({ length: meta.totalAyahs }, (_, i) => {
     const num = i + 1;
     return {
       number: num,
-      arabic: num === 1 ? 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ' : `آية ${num} مِنْ ${meta.arabicName}`,
-      transliteration: `Verse ${num} of Surah ${meta.transliteration}`,
-      translation: `In the name of Allah, the Entirely Merciful, the Especially Merciful. (Ayah ${num})`,
+      arabic: num === 1 ? 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ' : `آية ${num}`,
+      transliteration: `Verse ${num}`,
+      translation: num === 1 
+        ? 'In the name of Allah, the Entirely Merciful, the Especially Merciful.' 
+        : `Surah ${meta.transliteration}, Verse ${num}`,
       words: [{ id: 1, arabic: 'ٱللَّهِ', transliteration: 'Allah', translation: 'Allah' }],
       audioUrl: getAyahAudioUrl(surahNumber, num, reciterSubfolder),
     };
@@ -682,6 +834,7 @@ export interface StoredReaderSettings {
   showTajweed?: boolean;
   showWordHints: boolean;
   autoScroll: boolean;
+  focusRecitedVerse?: boolean;
 }
 
 const DEFAULT_STORED_SETTINGS: StoredReaderSettings = {
@@ -695,6 +848,7 @@ const DEFAULT_STORED_SETTINGS: StoredReaderSettings = {
   showTajweed: true,
   showWordHints: true,
   autoScroll: true,
+  focusRecitedVerse: false,
 };
 
 export function getStoredReaderSettings(): StoredReaderSettings {

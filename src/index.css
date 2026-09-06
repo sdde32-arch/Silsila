@@ -117,16 +117,13 @@
     color: #FFFFFF;
   }
 
-  /* Custom utility for Quranic text - Crisp Jet Black in Light, Crisp Radiant White in Dark */
+  /* Custom utility for Quranic text - Crisp crystal-clear high contrast rendering */
   .font-quran {
     font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
-    color: #000000;
     font-weight: 700;
-  }
-
-  .dark .font-quran,
-  html.dark .font-quran {
-    color: #FFFFFF;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .font-sans-ui {

@@ -44,7 +44,7 @@ const TOUR_STOPS: TourStop[] = [
     id: 'bottom-nav',
     targetSelector: '[data-tour="bottom-nav"]',
     tab: 'today',
-    title: 'The Four Core Tabs',
+    title: 'The Five Core Tabs',
     badge: 'Step 1 of 4 • Navigation',
     badgeBg: 'bg-emerald-100 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-700',
     badgeText: 'text-emerald-950 dark:text-emerald-300',
@@ -52,14 +52,14 @@ const TOUR_STOPS: TourStop[] = [
     iconBg: 'bg-emerald-600 text-white',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
     description:
-      '• Today: Your daily Sabaq lesson and spaced review queues.\n• Explore: Read and listen to all 114 Surahs with Tajweed and reciters.\n• Progress: Your complete 114-Surah roadmap, SM-2 retention curves, and Mastery Exams.\n• You: Spiritual Niyyah journal, target plan, and app preferences.',
+      '• Today: Your daily lesson and spaced review queues.\n• Quran: Read and listen to all 114 Surahs with Tajweed and reciters.\n• Practice: Fun active recall games, quizzes, and quests.\n• Progress: Your complete 114-Surah roadmap, SM-2 retention curves, and Mastery Exams.\n• Profile: Spiritual Niyyah journal, target plan, and app preferences.',
     tip: 'Tap any tab anytime to switch views freely with zero lost progress.',
   },
   {
     id: 'sabaq-card',
     targetSelector: '[data-tour="sabaq-card"]',
     tab: 'today',
-    title: "Today's Sabaq Lesson",
+    title: "Today's Lesson (Sabaq)",
     badge: 'Step 2 of 4 • Daily New Verses',
     badgeBg: 'bg-amber-100 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700',
     badgeText: 'text-amber-950 dark:text-amber-300',
@@ -67,7 +67,7 @@ const TOUR_STOPS: TourStop[] = [
     iconBg: 'bg-amber-500 text-slate-950',
     iconColor: 'text-amber-600 dark:text-amber-400',
     description:
-      'This is your daily Sabaq lesson—your active new verse drill. Each session guides you through interactive active recall with phoneme-level audio, word breakdowns, and blind tests to lock verses into long-term memory.',
+      'This is your daily lesson (Sabaq)—your active new verse drill. Each session guides you through interactive active recall with phoneme-level audio, word breakdowns, and blind tests to lock verses into long-term memory.',
     tip: 'Daily pace: typically 1 to 5 new verses per day depending on your customized plan.',
   },
   {

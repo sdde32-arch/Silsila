@@ -46,7 +46,7 @@ import {
 } from '../../services/memorizationEngine';
 import { ALL_114_SURAHS } from '../../data/quranMetadata';
 import { SURAH_CONTENT_DB, AyahDetail } from '../../data/quranVerses';
-import { getSurahCompleteData } from '../../services/quranDataService';
+import { getSurahCompleteData, cleanAuthenticTranslation } from '../../services/quranDataService';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { getNiyyahEntries } from '../../services/niyyahService';
 import { SilsilaLogo, SilsilaEmblem } from '../ui/SilsilaLogo';
@@ -144,7 +144,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const quickFeatures = [
     {
       id: 'sabaq',
-      title: "Today's Sabaq",
+      title: "Today's Lesson",
       subtitle: `Surah ${sabaqSurahMeta.name} • Ayah ${dailyQueue.sabaq.ayahNumber} of ${sabaqSurahMeta.totalAyahs}`,
       icon: Zap,
       cardBg: 'bg-amber-100/90 dark:bg-amber-950/40 hover:bg-amber-200/90 dark:hover:bg-amber-900/50 border-amber-300 dark:border-amber-800/80 hover:border-amber-400 dark:hover:border-amber-700',
@@ -393,10 +393,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 border border-amber-300/70 dark:border-amber-800 text-amber-950 dark:text-amber-300 font-black text-xs uppercase tracking-wider flex items-center gap-1">
               <Zap className="w-3.5 h-3.5 fill-amber-500 text-amber-600 dark:text-amber-400" />
-              <span>Today's Sabaq</span>
+              <span>Today's Lesson</span>
             </span>
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline">
-              New Memorization
+              New Verse (Sabaq)
             </span>
           </div>
 
@@ -425,12 +425,32 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
         {/* Arabic Verse Preview Box */}
         <div className="py-2.5 px-3.5 bg-amber-50/40 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 space-y-1.5">
+          {dailyQueue.sabaq.ayahNumber === 1 && dailyQueue.sabaq.surahId !== 1 && dailyQueue.sabaq.surahId !== 9 && (
+            <div className="text-center pb-2 border-b border-amber-200/60 dark:border-amber-900/60">
+              <p className="font-quran text-base font-bold text-black dark:text-slate-100" dir="rtl">
+                بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+              </p>
+              <p className="text-[10px] text-amber-950/80 dark:text-slate-300 font-serif italic">
+                In the name of Allah, the Entirely Merciful, the Especially Merciful
+              </p>
+            </div>
+          )}
+          {dailyQueue.sabaq.ayahNumber === 1 && dailyQueue.sabaq.surahId === 9 && (
+            <div className="text-center pb-2 border-b border-amber-200/60 dark:border-amber-900/60">
+              <p className="font-quran text-sm font-bold text-black dark:text-slate-100" dir="rtl">
+                أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَانِ ٱلرَّجِيمِ
+              </p>
+              <p className="text-[10px] text-amber-950 dark:text-amber-200 font-sans font-medium">
+                Surah At-Tawbah does not begin with the Basmalah • Recitation begins with Isti'adha
+              </p>
+            </div>
+          )}
           <p className="font-quran text-lg sm:text-xl font-bold text-slate-950 dark:text-white leading-[2.1] text-right" dir="rtl">
-            {sabaqAyahDetail?.arabic || 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ'}
+            {sabaqAyahDetail?.arabic || '...'}
           </p>
           {sabaqAyahDetail?.translation && (
-            <p className="text-xs text-slate-600 dark:text-slate-300 italic font-medium pt-1 border-t border-amber-100 dark:border-amber-900/60">
-              "{sabaqAyahDetail.translation}"
+            <p className="text-xs text-slate-900 dark:text-slate-100 italic font-semibold pt-1 border-t border-amber-100 dark:border-amber-900/60">
+              "{cleanAuthenticTranslation(sabaqAyahDetail.translation)}"
             </p>
           )}
         </div>

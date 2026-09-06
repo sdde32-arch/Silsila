@@ -27,6 +27,8 @@ import {
   Type,
   CheckCircle2,
   DownloadCloud,
+  Focus,
+  Radio,
 } from 'lucide-react';
 import { ALL_114_SURAHS, SurahMeta } from '../data/quranMetadata';
 import { SurahContent, AyahDetail, QuranWord } from '../data/quranVerses';
@@ -126,8 +128,11 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
   const [selectedQari, setSelectedQari] = useState<ReciterInfo>(RECITERS_LIST[0]);
   const [showQariModal, setShowQariModal] = useState<boolean>(false);
 
-  // Reader Tab: 'cards' vs 'mushaf'
-  const [readerTab, setReaderTab] = useState<'cards' | 'mushaf'>('cards');
+  // Reader Tab: 'cards' vs 'mushaf' vs 'focus' (focus shows only currently reciting verse)
+  const [readerTab, setReaderTab] = useState<'cards' | 'mushaf' | 'focus'>(() => {
+    const initial = getStoredReaderSettings();
+    return initial.focusRecitedVerse ? 'focus' : 'cards';
+  });
 
   // Study Configuration States
   const [loopFromAyah, setLoopFromAyah] = useState<number>(1);
@@ -180,9 +185,28 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
     setDisplaySettings((prev) => {
       const updated = { ...prev, ...newSettings };
       saveStoredReaderSettings(updated);
+      if (newSettings.focusRecitedVerse !== undefined) {
+        setReaderTab(newSettings.focusRecitedVerse ? 'focus' : 'cards');
+      }
       return updated;
     });
   };
+
+  // Auto-scroll to follow Sheikh's active recited verse in Cards & Mushaf modes
+  useEffect(() => {
+    if (!displaySettings.autoScroll || playingAyah === null) return;
+    if (readerTab === 'focus') return; // Focus mode only renders the single active verse on screen
+
+    const timer = setTimeout(() => {
+      const targetId = readerTab === 'cards' ? `ayah-card-${playingAyah}` : `mushaf-ayah-${playingAyah}`;
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [playingAyah, readerTab, displaySettings.autoScroll]);
 
   // Quick Font Size Stepper (delta in px)
   const currentArabicPx = displaySettings.customArabicFontSizePx ||
@@ -358,6 +382,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
       try {
         if (!audio.paused) audio.pause();
         setIsAudioPlaying(false);
+        setPlayingAyah(null);
       } catch {}
     });
 
@@ -412,6 +437,8 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
     const pageNum = activeSurahContent?.pageNumber ?? selectedSurahMeta.pageNumber ?? 1;
 
     const url = getAyahAudioUrl(surahNum, ayahNum, selectedQari.subfolder);
+
+    globalAudioManager.stopAll('surah-explorer', audio);
 
     if (audio.src !== url) {
       audio.src = url;
@@ -493,6 +520,21 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
     setIsAudioPlaying(false);
     setIsLooping(false);
     setPlayingAyah(null);
+  };
+
+  const [copiedAyah, setCopiedAyah] = useState<number | null>(null);
+
+  const handleShareAyah = async (ayah: AyahDetail) => {
+    const textToShare = `${ayah.arabic}\n\n"${ayah.translation || ''}"\n\n— Surah ${selectedSurahMeta.transliteration} [${selectedSurahMeta.number}:${ayah.number}]`;
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(textToShare);
+        setCopiedAyah(ayah.number);
+        setTimeout(() => setCopiedAyah(null), 2000);
+      }
+    } catch (e) {
+      console.error('Failed to copy verse text', e);
+    }
   };
 
   const handleToggleWordReveal = (ayahNum: number, wordId: number) => {
@@ -1108,6 +1150,40 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
               {formatTime(audioDuration)}
             </span>
           </div>
+
+          {/* Recitation Focus & Auto-Follow Quick Controls */}
+          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const nextTab = readerTab === 'focus' ? 'cards' : 'focus';
+                setReaderTab(nextTab);
+                handleUpdateDisplaySettings({ focusRecitedVerse: nextTab === 'focus' });
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                readerTab === 'focus'
+                  ? 'bg-amber-500 text-slate-950 shadow-2xs font-black'
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+              }`}
+              title={readerTab === 'focus' ? 'Showing ONLY active recited verse • Click to show all' : 'Show only active recited verse on screen'}
+            >
+              <Focus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{readerTab === 'focus' ? 'Showing Recited Verse Only' : 'Show Recited Verse Only'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleUpdateDisplaySettings({ autoScroll: !displaySettings.autoScroll })}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all cursor-pointer ${
+                displaySettings.autoScroll
+                  ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
+                  : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
+              }`}
+              title={displaySettings.autoScroll ? 'Auto-follow reciter is ON' : 'Auto-follow reciter is OFF'}
+            >
+              <span>Auto-Follow: {displaySettings.autoScroll ? 'ON' : 'OFF'}</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -1174,27 +1250,53 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
             </button>
           </div>
 
-          {/* [Cards] / [Mushaf] Toggle Pill */}
-          <div className="flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-300 flex-1 h-9 shadow-inner">
+          {/* [Cards] / [Page] / [Focus] Toggle Pill */}
+          <div className="flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-slate-850 border border-slate-300 dark:border-slate-700 flex-1 h-9 shadow-inner">
             <button
-              onClick={() => setReaderTab('cards')}
+              onClick={() => {
+                setReaderTab('cards');
+                handleUpdateDisplaySettings({ focusRecitedVerse: false });
+              }}
               className={`flex-1 h-full rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
                 readerTab === 'cards'
-                  ? 'bg-slate-950 text-white shadow-sm'
-                  : 'text-slate-700 hover:text-black'
+                  ? 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 shadow-sm'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white'
               }`}
+              title="Cards: Individual verse cards with translations & word inspector"
             >
               Cards
             </button>
             <button
-              onClick={() => setReaderTab('mushaf')}
+              onClick={() => {
+                setReaderTab('mushaf');
+                handleUpdateDisplaySettings({ focusRecitedVerse: false });
+              }}
               className={`flex-1 h-full rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
                 readerTab === 'mushaf'
-                  ? 'bg-slate-950 text-white shadow-sm'
-                  : 'text-slate-700 hover:text-black'
+                  ? 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 shadow-sm'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white'
               }`}
+              title="Page: Continuous Quran page layout (Mushaf view)"
             >
-              Mushaf
+              Page
+            </button>
+            <button
+              onClick={() => {
+                setReaderTab('focus');
+                handleUpdateDisplaySettings({ focusRecitedVerse: true });
+              }}
+              className={`flex-1 h-full rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                readerTab === 'focus'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white'
+              }`}
+              title="Focus: Shows only the verse currently being recited by the Sheikh"
+            >
+              <Focus className="w-3 h-3 stroke-[2.5]" />
+              <span>Focus</span>
+              {isAudioPlaying && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              )}
             </button>
           </div>
         </div>
@@ -1214,9 +1316,27 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
             <div className="space-y-3">
               {/* Medina Mushaf Bismillah Opening Header for Surahs other than 1 and 9 */}
               {selectedSurahMeta.number !== 1 && selectedSurahMeta.number !== 9 && (
-                <div className="text-center py-6 px-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-2xs">
+                <div className="text-center py-5 px-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-2xs space-y-1">
                   <p className="font-quran text-3xl sm:text-4xl font-bold text-black leading-loose overflow-visible dark:text-slate-100" dir="rtl">
                     {displaySettings.showWordHints ? 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ' : annotateText('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ')}
+                  </p>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-serif italic">
+                    In the name of Allah, the Entirely Merciful, the Especially Merciful
+                  </p>
+                </div>
+              )}
+
+              {/* Surah 9 (At-Tawbah) Isti'adha Opening in accordance with Quranic rules */}
+              {selectedSurahMeta.number === 9 && (
+                <div className="text-center py-5 px-4 rounded-3xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-300/80 dark:border-amber-800/80 shadow-2xs space-y-1.5">
+                  <p className="font-quran text-2xl sm:text-3xl font-bold text-black dark:text-slate-100" dir="rtl">
+                    أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَانِ ٱلرَّجِيمِ
+                  </p>
+                  <p className="text-xs text-amber-950 dark:text-amber-200 font-serif italic font-semibold">
+                    I seek refuge in Allah from Satan, the accursed
+                  </p>
+                  <p className="text-[11px] text-amber-900/90 dark:text-amber-300/90 font-sans font-medium">
+                    Surah At-Tawbah does not begin with the Basmalah in accordance with collective Quranic consensus. Recitation commences with Isti'adha.
                   </p>
                 </div>
               )}
@@ -1240,6 +1360,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                 return (
                   <div
                     key={ayah.number}
+                    id={`ayah-card-${ayah.number}`}
                     className={`p-3.5 sm:p-4.5 rounded-2xl transition-all border ${
                       isAyahPlaying
                         ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-slate-100 border-2 border-indigo-600 shadow-md ring-2 ring-indigo-500/10'
@@ -1346,7 +1467,17 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                     <div className="flex items-center gap-2 w-full">
                       {/* 6-Step Memorization Lesson Button */}
                       <button
-                        onClick={() => onStartLesson(selectedSurahMeta.number, ayah.number)}
+                        onClick={() => {
+                          if (audioRef.current && !audioRef.current.paused) {
+                            try {
+                              audioRef.current.pause();
+                            } catch {}
+                          }
+                          setIsAudioPlaying(false);
+                          setPlayingAyah(null);
+                          globalAudioManager.stopAll();
+                          onStartLesson(selectedSurahMeta.number, ayah.number);
+                        }}
                         className="flex-1 h-8 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-[11px] font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm active:scale-95"
                         title="Start Memorization Lesson for this Ayah"
                       >
@@ -1488,11 +1619,26 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                   </p>
                 </div>
 
-                {/* Bismillah Opening */}
-                {activeSurahContent.number !== 9 && (
-                  <div className="text-center py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                {/* Bismillah Opening for Surahs other than 1 and 9 */}
+                {activeSurahContent.number !== 1 && activeSurahContent.number !== 9 && (
+                  <div className="text-center py-3 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-1">
                     <p className="font-quran text-2xl sm:text-3xl font-bold text-black leading-[2.2] overflow-visible dark:text-slate-100" dir="rtl">
                       {displaySettings.showWordHints ? 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ' : annotateText('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ')}
+                    </p>
+                    <p className="text-[11px] text-slate-700 dark:text-slate-300 font-serif italic">
+                      In the name of Allah, the Entirely Merciful, the Especially Merciful
+                    </p>
+                  </div>
+                )}
+
+                {/* Surah 9 (At-Tawbah) Isti'adha Opening */}
+                {activeSurahContent.number === 9 && (
+                  <div className="text-center py-3 px-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/80 shadow-2xs space-y-1">
+                    <p className="font-quran text-xl sm:text-2xl font-bold text-black dark:text-slate-100" dir="rtl">
+                      أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَانِ ٱلرَّجِيمِ
+                    </p>
+                    <p className="text-[10.5px] text-amber-950 dark:text-amber-200 font-sans font-medium">
+                      Surah At-Tawbah does not begin with the Basmalah • Recitation begins with Isti'adha
                     </p>
                   </div>
                 )}
@@ -1518,6 +1664,7 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
                       return (
                         <span
                           key={ayah.number}
+                          id={`mushaf-ayah-${ayah.number}`}
                           onClick={() => handleTogglePlayAyah(ayah.number)}
                           className={`inline transition-colors px-0.5 rounded-lg cursor-pointer text-black ${
                             isSelected ? 'bg-amber-50/90 ring-1 ring-amber-300' : 'hover:text-indigo-700'
@@ -1587,6 +1734,259 @@ export const SurahExplorerView: React.FC<SurahExplorerViewProps> = ({
               </div>
             </div>
           )}
+
+          {/* ========================================================================= */}
+          {/* 3C. RECITATION FOCUS VIEW (Shows exclusively the currently reciting verse) */}
+          {/* ========================================================================= */}
+          {readerTab === 'focus' && activeSurahContent && (() => {
+            const currentActiveAyahNumber = playingAyah || 1;
+            const focusedAyah =
+              activeSurahContent.ayahs.find((a) => a.number === currentActiveAyahNumber) ||
+              activeSurahContent.ayahs[0];
+            const isAyahPlaying = playingAyah === focusedAyah.number && isAudioPlaying;
+            const isBookmarked = bookmarkedVerses[focusedAyah.number] || false;
+            const wordsList = getAyahWordsList(focusedAyah);
+            const activeWordIdx = isAyahPlaying
+              ? getActiveWordIndex({
+                  surahNumber: activeSurahContent.number,
+                  ayahNumber: focusedAyah.number,
+                  wordsCount: wordsList.length,
+                  currentTimeSeconds: audioCurrentTime,
+                  durationSeconds: audioDuration,
+                  reciterKey: selectedQari.id || selectedQari.subfolder,
+                  arabicWords: wordsList.map((w) => w.arabic),
+                })
+              : -1;
+
+            return (
+              <div className="space-y-3 animate-in fade-in duration-200">
+                {/* Live Recitation Focus Card */}
+                <div className="p-4 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-400/80 dark:border-amber-500/60 shadow-lg space-y-4">
+                  {/* Top Focus Ribbon */}
+                  <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="px-2.5 py-1 rounded-xl bg-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-2xs shrink-0">
+                        <Focus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Ayah {focusedAyah.number} of {activeSurahContent.totalAyahs}</span>
+                      </span>
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400 truncate">
+                        {activeSurahContent.transliteration}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                        {isAyahPlaying ? (
+                          <>
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="truncate max-w-[100px] sm:max-w-none">{selectedQari.name}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Headphones className="w-3 h-3 text-slate-400" />
+                            <span className="truncate max-w-[100px] sm:max-w-none">{selectedQari.name}</span>
+                          </>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setReaderTab('cards');
+                          handleUpdateDisplaySettings({ focusRecitedVerse: false });
+                        }}
+                        className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer"
+                        title="Show all verses list"
+                      >
+                        All Verses
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Recitation Status Banner */}
+                  <div className="px-3.5 py-2 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 flex items-center justify-between text-[11px] text-amber-950 dark:text-amber-200 font-medium">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Radio className="w-3.5 h-3.5 text-amber-600 animate-pulse shrink-0" />
+                      <span className="truncate">
+                        {isAyahPlaying
+                          ? `Currently reciting • Screen auto-updates when next verse begins`
+                          : `Recitation paused • Tap play below to listen to Sheikh ${selectedQari.name}`}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[10.5px] font-bold opacity-80 shrink-0 ml-2">
+                      {formatTime(audioCurrentTime)} / {formatTime(audioDuration)}
+                    </span>
+                  </div>
+
+                  {/* Bismillah Header if Verse 1 and not Surah 1 or 9 */}
+                  {focusedAyah.number === 1 && activeSurahContent.number !== 1 && activeSurahContent.number !== 9 && (
+                    <div className="text-center py-2 px-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                      <p className="font-quran text-xl sm:text-2xl font-bold text-black dark:text-slate-100" dir="rtl">
+                        بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Arabic Recitation Canvas with Live Karaoke Highlight */}
+                  <div className="py-4 px-2 sm:px-4 text-center rounded-2xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800" dir="rtl">
+                    <p
+                      className="text-black font-bold font-quran leading-loose dark:text-slate-100 selection:bg-amber-200"
+                      style={getArabicStyle()}
+                    >
+                      {wordsList.map((w, widx) => {
+                        const isWordActive = isAyahPlaying && widx === activeWordIdx;
+                        return (
+                          <span
+                            key={w.id || widx}
+                            onClick={(e) => {
+                              if (displaySettings.showWordHints) {
+                                e.stopPropagation();
+                                setSelectedWordInspector({
+                                  word: w.arabic,
+                                  ayahNumber: focusedAyah.number,
+                                  wordIdx: widx + 1,
+                                  transliteration: w.transliteration,
+                                  translation: w.translation,
+                                });
+                              }
+                            }}
+                            className={`transition-all duration-150 inline-block mx-0.5 sm:mx-1 rounded-lg px-1 sm:px-1.5 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/40 ${
+                              isWordActive
+                                ? 'bg-amber-300 text-slate-950 font-black ring-2 ring-amber-400 shadow-md scale-105'
+                                : ''
+                            }`}
+                            title={w.translation || 'Tap for morphology & tajweed'}
+                          >
+                            {displaySettings.showTajweed ? annotateText(w.arabic) : w.arabic}
+                          </span>
+                        );
+                      })}{' '}
+                      <span className={`inline-flex items-center justify-center w-8 h-8 mx-1.5 align-middle rounded-full border text-xs font-bold select-none shadow-2xs ${
+                        isAyahPlaying
+                          ? 'bg-amber-400 text-amber-950 border-amber-500 font-black ring-2 ring-amber-300/60'
+                          : 'bg-amber-100 border-amber-300 text-amber-950'
+                      }`}>
+                        ﴿{toArabicNumerals(focusedAyah.number)}﴾
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* English Translation */}
+                  {displaySettings.showTranslation && focusedAyah.translation && (
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/80 space-y-1">
+                      <span className="text-[10px] uppercase font-black tracking-wider text-slate-500 block">
+                        Translation (Sahih International)
+                      </span>
+                      <p className={`text-slate-800 dark:text-slate-200 font-serif ${getTranslationFontClass()}`}>
+                        "{focusedAyah.translation}"
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Transliteration */}
+                  {displaySettings.showTransliteration && (focusedAyah.transliteration || focusedAyah.words?.[0]?.transliteration) && (
+                    <div className="px-3.5 py-2 rounded-xl bg-slate-50/60 dark:bg-slate-850/60 border border-slate-200/60 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs italic font-serif">
+                      {focusedAyah.transliteration ||
+                        wordsList.map((w) => w.transliteration).filter(Boolean).join(' ')}
+                    </div>
+                  )}
+
+                  {/* In-Card Focused Recitation Navigation & Utilities */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => {
+                          if (focusedAyah.number > 1) {
+                            const prevNum = focusedAyah.number - 1;
+                            setPlayingAyah(prevNum);
+                            playAyahAudio(prevNum);
+                          }
+                        }}
+                        disabled={focusedAyah.number <= 1}
+                        className="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1 disabled:opacity-30 cursor-pointer active:scale-95 shadow-2xs min-h-[40px]"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span>Prev Verse</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTogglePlayAyah(focusedAyah.number)}
+                        className="px-4 py-2 rounded-xl bg-slate-950 hover:bg-indigo-900 dark:bg-amber-500 dark:hover:bg-amber-600 text-white dark:text-slate-950 text-xs font-black flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-md min-h-[40px]"
+                      >
+                        {isAyahPlaying ? (
+                          <>
+                            <Pause className="w-4 h-4 fill-current" />
+                            <span>Pause</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 fill-current" />
+                            <span>Recite</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (focusedAyah.number < activeSurahContent.totalAyahs) {
+                            const nextNum = focusedAyah.number + 1;
+                            setPlayingAyah(nextNum);
+                            playAyahAudio(nextNum);
+                          }
+                        }}
+                        disabled={focusedAyah.number >= activeSurahContent.totalAyahs}
+                        className="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1 disabled:opacity-30 cursor-pointer active:scale-95 shadow-2xs min-h-[40px]"
+                      >
+                        <span>Next Verse</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleToggleBookmark(focusedAyah)}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
+                          isBookmarked
+                            ? 'bg-amber-50 text-amber-800 border-amber-300 shadow-2xs'
+                            : 'bg-white hover:bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                        }`}
+                        title={isBookmarked ? 'Bookmarked' : 'Bookmark this verse'}
+                      >
+                        <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-amber-500 text-amber-600' : ''}`} />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSelectedTafsirAyah(focusedAyah);
+                          setInitialTafsirTab('hifz');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95 min-h-[40px]"
+                        title="View Tafsir & Insights"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span>Tafsir</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleShareAyah(focusedAyah)}
+                        className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                          copiedAyah === focusedAyah.number
+                            ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                            : 'bg-white hover:bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                        }`}
+                        title={copiedAyah === focusedAyah.number ? 'Copied to clipboard' : 'Share Verse'}
+                      >
+                        {copiedAyah === focusedAyah.number ? (
+                          <Check className="w-4 h-4 text-emerald-600" />
+                        ) : (
+                          <Share2 className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
 

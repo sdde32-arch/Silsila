@@ -18,6 +18,7 @@ export interface ReaderDisplaySettings {
   showTajweed?: boolean;
   showWordHints: boolean;
   autoScroll: boolean;
+  focusRecitedVerse?: boolean;
 }
 
 export const DEFAULT_READER_SETTINGS: ReaderDisplaySettings = {
@@ -31,6 +32,7 @@ export const DEFAULT_READER_SETTINGS: ReaderDisplaySettings = {
   showTajweed: true,
   showWordHints: true,
   autoScroll: true,
+  focusRecitedVerse: false,
 };
 
 export const ARABIC_SIZE_PRESETS: { id: ArabicFontSize; label: string; px: number; desc: string }[] = [
@@ -368,6 +370,35 @@ export const ReaderSettingsModal: React.FC<ReaderSettingsModalProps> = ({
               type="checkbox"
               checked={settings.showWordHints}
               onChange={(e) => onUpdateSettings({ showWordHints: e.target.checked })}
+              className="w-5 h-5 accent-amber-500 rounded-md cursor-pointer"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs cursor-pointer transition-colors">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-extrabold text-slate-900">Focus on Recited Verse</p>
+                <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 font-bold text-[9px] uppercase">Option</span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">Shows only the verse the Sheikh is currently reciting</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={Boolean(settings.focusRecitedVerse)}
+              onChange={(e) => onUpdateSettings({ focusRecitedVerse: e.target.checked })}
+              className="w-5 h-5 accent-amber-500 rounded-md cursor-pointer"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs cursor-pointer transition-colors">
+            <div>
+              <p className="text-xs font-extrabold text-slate-900">Auto-Follow Reciter</p>
+              <p className="text-[11px] text-slate-500 font-medium">Smoothly scroll screen to keep current recited verse in view</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.autoScroll}
+              onChange={(e) => onUpdateSettings({ autoScroll: e.target.checked })}
               className="w-5 h-5 accent-amber-500 rounded-md cursor-pointer"
             />
           </label>

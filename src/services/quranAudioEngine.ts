@@ -616,6 +616,58 @@ const CURATED_WORD_DICTIONARY: Record<string, Partial<WordDetailData>[]> = {
       pronunciationTip: 'Elongate the Alif for 6 full counts before pressing hard into the doubled Lam.',
     },
   ],
+  '78:1': [
+    {
+      wordNumber: 1,
+      arabic: 'عَمَّ',
+      transliteration: 'ʿAmma',
+      translation: 'About what',
+      rootLetters: 'ع-ن-م',
+      grammarType: 'particle',
+      tajweedRule: 'Ghunnah on doubled Meem (2 counts)',
+      pronunciationTip: 'Middle of throat Ayn (ع) followed by a 2-beat nasal Ghunnah on the Meem.',
+    },
+    {
+      wordNumber: 2,
+      arabic: 'يَتَسَآءَلُونَ',
+      transliteration: 'yatasaaa’aloon',
+      translation: 'are they asking one another',
+      rootLetters: 'س-أ-ل',
+      grammarType: 'verb',
+      tajweedRule: 'Madd Muttasil (4-5 counts)',
+      pronunciationTip: 'Lengthen the Alif for 4-5 counts before articulating the clear Hamzah (ء).',
+    },
+  ],
+  '78:2': [
+    {
+      wordNumber: 1,
+      arabic: 'عَنِ',
+      transliteration: 'ʿani',
+      translation: 'About',
+      rootLetters: 'ع-ن-ن',
+      grammarType: 'preposition',
+      pronunciationTip: 'Deep pharyngeal Ayn with clear noon.',
+    },
+    {
+      wordNumber: 2,
+      arabic: 'ٱلنَّبَإِ',
+      transliteration: 'al-naba’i',
+      translation: 'the great news',
+      rootLetters: 'ن-ب-أ',
+      grammarType: 'noun',
+      tajweedRule: 'Ghunnah on Mushaddad Noon',
+      pronunciationTip: 'Hold the Noon with 2 counts of nasal resonance, followed by a crisp Hamzah.',
+    },
+    {
+      wordNumber: 3,
+      arabic: 'ٱلْعَظِيمِ',
+      transliteration: 'al-ʿAẓeem',
+      translation: 'the momentous',
+      rootLetters: 'ع-ظ-م',
+      grammarType: 'noun',
+      pronunciationTip: 'Heavy emphatic Dhaa (ظ) with tongue tip slightly extended.',
+    },
+  ],
   // Common recurring words
   'common:alladhi': [
     {
@@ -811,7 +863,16 @@ export async function playArabicWordPronunciation(
       audio.src = url;
       audio.playbackRate = playbackSpeed;
 
+      let safetyTimer: any = null;
+      const clearSafety = () => {
+        if (safetyTimer) {
+          clearTimeout(safetyTimer);
+          safetyTimer = null;
+        }
+      };
+
       const unregister = globalAudioManager.registerAudioElement(audio, 'word-wbw', () => {
+        clearSafety();
         try {
           if (!audio.paused) audio.pause();
         } catch {
@@ -820,13 +881,31 @@ export async function playArabicWordPronunciation(
       });
 
       audio.onended = () => {
+        clearSafety();
         unregister();
         notifyEnded();
       };
       audio.onerror = () => {
+        clearSafety();
         unregister();
-        // Will continue to next mirror in loop
+        notifyEnded();
       };
+
+      audio.onloadedmetadata = () => {
+        const dur = (audio.duration && !isNaN(audio.duration) && audio.duration > 0) ? audio.duration : 2.5;
+        const maxMs = Math.round((dur / playbackSpeed) * 1000 + 700);
+        clearSafety();
+        safetyTimer = setTimeout(() => {
+          unregister();
+          notifyEnded();
+        }, maxMs);
+      };
+
+      // Initial safety fallback if metadata is delayed
+      safetyTimer = setTimeout(() => {
+        unregister();
+        notifyEnded();
+      }, 4000);
 
       const playPromise = audio.play();
       if (playPromise !== undefined) {
@@ -848,12 +927,27 @@ export async function playArabicWordPronunciation(
         utterance.rate = playbackSpeed * 0.85;
         utterance.pitch = 1.0;
 
+        let speechTimer: any = null;
+        const clearSpeechTimer = () => {
+          if (speechTimer) {
+            clearTimeout(speechTimer);
+            speechTimer = null;
+          }
+        };
+
         utterance.onend = () => {
+          clearSpeechTimer();
           notifyEnded();
         };
         utterance.onerror = () => {
+          clearSpeechTimer();
           notifyEnded();
         };
+
+        // Safety fallback timer for speech synthesis
+        speechTimer = setTimeout(() => {
+          notifyEnded();
+        }, Math.max(word.arabic.length * 300, 1800));
 
         window.speechSynthesis.speak(utterance);
         resolve({ source: 'speech_synthesis' });
@@ -902,12 +996,112 @@ export function getArabicSpeechVoice(): SpeechSynthesisVoice | null {
   return null;
 }
 
+export const ARABIC_ALPHABET_AUDIO_MAP: Record<string, string> = {
+  'ا': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/1_alif.mp3',
+  'أ': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/28_hamzah.mp3',
+  'إ': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/28_hamzah.mp3',
+  'ٱ': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/1_alif.mp3',
+  'ء': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/28_hamzah.mp3',
+  'ب': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/2_baa.mp3',
+  'ت': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/3_taa.mp3',
+  'ث': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/4_thaa.mp3',
+  'ج': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/5_jeem.mp3',
+  'ح': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/6_haa.mp3',
+  'خ': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/7_khaa.mp3',
+  'د': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/8_daal.mp3',
+  'ذ': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/9_zaal.mp3',
+  'ر': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/10_raa.mp3',
+  'ز': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/11_zaa.mp3',
+  'س': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/12_seen.mp3',
+  'ش': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/13_sheen.mp3',
+  'ص': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/14_saad.mp3',
+  'ض': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/15_daad.mp3',
+  'ط': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/16_taah.mp3',
+  'ظ': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/17_zhaa.mp3',
+  'ع': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/18_ain.mp3',
+  'غ': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/19_ghain.mp3',
+  'ف': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/20_faa.mp3',
+  'ق': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/21_qaaf.mp3',
+  'ك': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/22_kaaf.mp3',
+  'ل': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/23_laam.mp3',
+  'م': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/24_meem.mp3',
+  'ن': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/25_noon.mp3',
+  'ه': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/26_haah.mp3',
+  'ة': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/3_taa.mp3',
+  'و': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/27_waw.mp3',
+  'ي': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/30_yaa.mp3',
+  'ى': 'https://raw.githubusercontent.com/adnan/Arabic-Alphabet/master/sounds/1_alif.mp3',
+};
+
+function playLetterViaArabicTTS(
+  arabicLetter: string,
+  meta?: {
+    name?: string;
+    arabicName?: string;
+    harakah?: string;
+    mode?: 'vowel_sound' | 'letter_name';
+    onAudioEnded?: () => void;
+  }
+): void {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    meta?.onAudioEnded?.();
+    return;
+  }
+
+  try {
+    window.speechSynthesis.cancel();
+    const isLetterNameMode = meta?.mode === 'letter_name';
+    let spokenText = '';
+
+    if (isLetterNameMode) {
+      spokenText =
+        meta?.arabicName ||
+        ARABIC_LETTERS_MAP[arabicLetter[0]]?.arabicName ||
+        arabicLetter;
+    } else {
+      spokenText = arabicLetter;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(spokenText);
+    utterance.lang = 'ar-SA';
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    const arabicVoice = getArabicSpeechVoice();
+    if (arabicVoice) {
+      utterance.voice = arabicVoice;
+    }
+
+    const instanceId = 'arabic-letter-tts';
+    const unregister = globalAudioManager.registerCustomPlayer(instanceId, () => {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+      meta?.onAudioEnded?.();
+    });
+
+    utterance.onend = () => {
+      unregister();
+      meta?.onAudioEnded?.();
+    };
+
+    utterance.onerror = () => {
+      unregister();
+      meta?.onAudioEnded?.();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.debug('[quranAudioEngine] Arabic TTS error:', err);
+    meta?.onAudioEnded?.();
+  }
+}
+
 /**
- * Pronounces a single letter or phonetic unit with guaranteed clean audio feedback.
- * 
- * - In 'vowel_sound' mode (default): Pronounces the exact vocalized letter (e.g. "سَ" -> "Sa", "عْ" -> "ʿ")
- * - In 'letter_name' mode: Pronounces the full Arabic letter noun (e.g. "سِين", "عَيْن")
- * - Uses a pure, soft acoustic chime without any harsh buzzing or static artifacts.
+ * Pronounces a single letter or phonetic unit with guaranteed authentic Arabic audio.
+ * Uses authentic native human Arabic audio recordings for all Arabic alphabet letters,
+ * and high-fidelity native Arabic vocalization for vowel combinations.
  */
 export function playIsolatedLetterSound(
   arabicLetter: string,
@@ -921,93 +1115,42 @@ export function playIsolatedLetterSound(
 ): void {
   if (!arabicLetter) return;
 
-  // Stop any other active audio
-  globalAudioManager.stopAll('letter-synth');
+  // Immediately stop all other audio across the entire application
+  globalAudioManager.stopAll('letter-audio');
 
-  // 1. Pure, soft acoustic tone (sine wave, zero static / no sawtooth buzz)
-  try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-    if (AudioCtx) {
-      const ctx = new AudioCtx();
-      globalAudioManager.registerAudioContext(ctx);
-      const now = ctx.currentTime;
+  const bareLetter = arabicLetter.replace(/[\u064B-\u065F\u0670\u06E1\u06DF-\u06ED]/g, '').trim();
+  const baseChar = bareLetter[0] || arabicLetter[0];
+  const humanAudioUrl = ARABIC_ALPHABET_AUDIO_MAP[baseChar] || ARABIC_ALPHABET_AUDIO_MAP[arabicLetter[0]];
 
-      // Soft harmonic chime for immediate tactile responsiveness
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = 'sine'; // Pure smooth tone, no harsh harmonics or static buzz
-      osc.frequency.setValueAtTime(528, now); // 528 Hz harmonic frequency
-      osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
+  // 1. If in letter_name mode OR if the letter has no diacritics, play the authentic human Arabic MP3
+  const isVocalized = arabicLetter.length > 1 && /[\u064B-\u065F\u0670\u06E1]/.test(arabicLetter);
+  const preferHumanRecording = meta?.mode === 'letter_name' || !isVocalized || !getArabicSpeechVoice();
 
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.04, now + 0.02); // Gentle low volume
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.18);
-
-      setTimeout(() => {
-        try {
-          ctx.close();
-        } catch {}
-      }, 300);
-    }
-  } catch {
-    // AudioContext not supported or restricted
-  }
-
-  // 2. High-Fidelity Arabic Speech Synthesis (Pronounces exact Arabic vocalization)
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-
-      // Determine text to pronounce
-      const isLetterNameMode = meta?.mode === 'letter_name';
-      let spokenText = '';
-
-      if (isLetterNameMode) {
-        // Formal letter name: "سِين", "بَاء", "أَلِف", etc.
-        spokenText =
-          meta?.arabicName ||
-          ARABIC_LETTERS_MAP[arabicLetter[0]]?.arabicName ||
-          arabicLetter;
-      } else {
-        // Exact vocalized phonetic unit with Harakah: "سَ", "يَ", "عْ", "لَ", "مُ", "و", "نَ"
-        spokenText = arabicLetter;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(spokenText);
-      utterance.lang = 'ar-SA';
-      utterance.rate = 0.82; // Measured, clear pace for Tajweed precision
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-
-      const arabicVoice = getArabicSpeechVoice();
-      if (arabicVoice) {
-        utterance.voice = arabicVoice;
-      }
-
-      if (meta?.onAudioEnded) {
-        utterance.onend = () => {
-          meta.onAudioEnded?.();
-        };
-        utterance.onerror = () => {
-          meta.onAudioEnded?.();
-        };
-      }
-
-      window.speechSynthesis.speak(utterance);
-    } catch (err) {
-      console.debug('Speech synthesis error:', err);
+  if (humanAudioUrl && preferHumanRecording) {
+    const audio = new Audio(humanAudioUrl);
+    const unregister = globalAudioManager.registerAudioElement(audio, 'letter-audio', () => {
       meta?.onAudioEnded?.();
-    }
-  } else {
-    meta?.onAudioEnded?.();
+    });
+
+    audio.onended = () => {
+      unregister();
+      meta?.onAudioEnded?.();
+    };
+
+    audio.onerror = () => {
+      unregister();
+      playLetterViaArabicTTS(arabicLetter, meta);
+    };
+
+    audio.play().catch(() => {
+      unregister();
+      playLetterViaArabicTTS(arabicLetter, meta);
+    });
+    return;
   }
+
+  // 2. Otherwise pronounce vocalized Harakah using authentic Arabic Speech Synthesis
+  playLetterViaArabicTTS(arabicLetter, meta);
 }
 
 /**

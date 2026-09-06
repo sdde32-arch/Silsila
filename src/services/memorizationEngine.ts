@@ -1518,7 +1518,11 @@ export function generateAyahLesson(
   let rawAyah: AyahDetail | undefined = providedAyah;
   if (!rawAyah) {
     try {
-      const localSaved = typeof window !== 'undefined' ? localStorage.getItem(`quran_surah_${surahNumber}_v2`) : null;
+      const localSaved =
+        typeof window !== 'undefined'
+          ? localStorage.getItem(`quran_surah_${surahNumber}_v5`) ||
+            localStorage.getItem(`quran_surah_${surahNumber}_v2`)
+          : null;
       if (localSaved) {
         const parsed = JSON.parse(localSaved);
         if (Array.isArray(parsed.ayahs)) {

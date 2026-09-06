@@ -115,12 +115,15 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
   // Practice state
   const [hasPracticed, setHasPracticed] = useState(false);
 
-  // Sync state when initialWord changes
+  // Sync state when initialWord changes (only when not in middle of continuous sequence playback)
   useEffect(() => {
-    setCurrentWord(initialWord);
-    setSelectedLetter(null);
-    setPlayingLetterId(null);
-  }, [initialWord]);
+    if (isPlayingSequenceRef.current) return;
+    if (initialWord && initialWord.wordNumber !== currentWord.wordNumber) {
+      setCurrentWord(initialWord);
+      setSelectedLetter(null);
+      setPlayingLetterId(null);
+    }
+  }, [initialWord?.wordNumber, initialWord?.ayahNumber, initialWord?.surahNumber]);
 
   // Set default selected letter
   useEffect(() => {
@@ -129,14 +132,16 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
     }
   }, [letterBreakdown, selectedLetter]);
 
-  // Clean up audio on unmount or word change
+  // Clean up audio strictly on modal unmount
   useEffect(() => {
     return () => {
       isPlayingSequenceRef.current = false;
+      isPlayingLetterSeqRef.current = false;
       stopAnyPlayingAudio();
       if (playingAllWordsTimerRef.current) clearTimeout(playingAllWordsTimerRef.current);
+      if (letterSeqTimerRef.current) clearTimeout(letterSeqTimerRef.current);
     };
-  }, [currentWord]);
+  }, []);
 
   const stopAnyPlayingAudio = () => {
     if (activeAudioInstanceRef.current) {
@@ -195,12 +200,12 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
     if (targetWordIndex < 1 || targetWordIndex > wordsList.length) return;
     const targetWord = wordsList[targetWordIndex - 1];
     if (targetWord) {
-      stopAnyPlayingAudio();
       if (isPlayingAllWords) {
         isPlayingSequenceRef.current = false;
         if (playingAllWordsTimerRef.current) clearTimeout(playingAllWordsTimerRef.current);
         setIsPlayingAllWords(false);
       }
+      stopAnyPlayingAudio();
       setCurrentWord(targetWord);
       setSelectedLetter(null);
       if (onSelectWord) onSelectWord(targetWord);
@@ -211,7 +216,7 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
     }
   };
 
-  // Play all words in sequence collectively (Event-driven chain through all words in the Ayah)
+  // Play all words in sequence collectively (Event-driven continuous chain through all words in the Ayah)
   const handlePlayAllWordsInAyah = () => {
     if (isPlayingAllWords) {
       isPlayingSequenceRef.current = false;
@@ -221,6 +226,9 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
       return;
     }
 
+    if (!wordsList || wordsList.length === 0) return;
+
+    stopAnyPlayingAudio();
     setIsPlayingAllWords(true);
     isPlayingSequenceRef.current = true;
 
@@ -237,14 +245,35 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
       setCurrentWord(w);
       if (onSelectWord) onSelectWord(w);
 
-      // Play word audio and wait for it to genuinely finish
+      // Smoothly scroll the word card into view in the carousel
+      const cardEl = document.getElementById(`word-carousel-item-${idx}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+
+      // Safety fallback timer if onEnded is delayed or dropped
+      if (playingAllWordsTimerRef.current) clearTimeout(playingAllWordsTimerRef.current);
+      let isWordDone = false;
+      const fallbackAdvanceTimer = setTimeout(() => {
+        if (!isWordDone && isPlayingSequenceRef.current) {
+          isWordDone = true;
+          playWordAt(idx + 1);
+        }
+      }, 4000);
+
+      // Play word audio and wait for completion before chaining to next word
       handlePlayWordAudio(w, playbackSpeed, () => {
+        if (isWordDone) return;
+        isWordDone = true;
+        clearTimeout(fallbackAdvanceTimer);
         if (!isPlayingSequenceRef.current) return;
-        // Natural Tajweed pause between words (350ms)
+
+        // Natural Tajweed pause between words (scaled slightly by playback speed)
+        const pauseMs = Math.round(280 / playbackSpeed);
         playingAllWordsTimerRef.current = setTimeout(() => {
           if (!isPlayingSequenceRef.current) return;
           playWordAt(idx + 1);
-        }, 350);
+        }, pauseMs);
       });
     };
 
@@ -411,6 +440,7 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
                 return (
                   <button
                     key={w.id || idx}
+                    id={`word-carousel-item-${idx}`}
                     onClick={() => handleSelectWordByIndex(idx + 1)}
                     className={`group relative shrink-0 flex flex-col items-center justify-between p-2.5 min-w-[76px] sm:min-w-[86px] rounded-2xl transition-colors duration-150 cursor-pointer border ${
                       isCurrent
@@ -745,6 +775,11 @@ export const WordPronunciationModal: React.FC<WordPronunciationModalProps> = ({
 
                 <button
                   onClick={() => {
+                    if (isPlayingAllWords) {
+                      isPlayingSequenceRef.current = false;
+                      if (playingAllWordsTimerRef.current) clearTimeout(playingAllWordsTimerRef.current);
+                      setIsPlayingAllWords(false);
+                    }
                     if (isPlayingReference) {
                       stopAnyPlayingAudio();
                     } else {

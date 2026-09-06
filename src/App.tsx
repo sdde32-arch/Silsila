@@ -38,6 +38,7 @@ import {
   saveCurrentStudyPosition,
 } from './services/memorizationEngine';
 import { OnboardingFlow, isOnboardingCompleted } from './components/onboarding/OnboardingFlow';
+import { globalAudioManager } from './services/globalAudioManager';
 import { InteractiveAppTour } from './components/tour/InteractiveAppTour';
 import { hasUserCompletedTour, subscribeToTourReplay } from './services/tourService';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -102,29 +103,46 @@ function MainApp() {
   const [isGamesHubOpen, setIsGamesHubOpen] = useState(false);
   const [surahForTest, setSurahForTest] = useState<number>(1);
 
+  // Stop all active audio whenever activeTab changes or modal opens/closes
+  useEffect(() => {
+    globalAudioManager.stopAll();
+  }, [
+    activeTab,
+    isMemorizationLessonOpen,
+    isSpacedReviewOpen,
+    isSurahTestOpen,
+    isPlanModalOpen,
+    isGamesHubOpen,
+  ]);
+
   // Cross-view handlers
   const handleStartLesson = (surahNumber = 1, ayahNumber = 1) => {
+    globalAudioManager.stopAll();
     setSelectedSurahNumber(surahNumber);
     setSelectedAyahNumber(ayahNumber);
     setIsMemorizationLessonOpen(true);
   };
 
   const handleStartExerciseSequence = () => {
+    globalAudioManager.stopAll();
     setCurrentExerciseStep(0);
     setExerciseStepHistory([]);
     setActiveTab('exercise');
   };
 
   const handleOpenPlanModal = () => {
+    globalAudioManager.stopAll();
     setIsPlanModalOpen(true);
   };
 
   const handleStartSurahTest = (surahNumber = 1) => {
+    globalAudioManager.stopAll();
     setSurahForTest(surahNumber);
     setIsSurahTestOpen(true);
   };
 
   const handleStartReview = (surahNumber?: number, ayahNumber?: number) => {
+    globalAudioManager.stopAll();
     if (surahNumber && ayahNumber) {
       setSelectedSurahNumber(surahNumber);
       setSelectedAyahNumber(ayahNumber);
@@ -135,6 +153,7 @@ function MainApp() {
   };
 
   const handleExploreSurah = (surahNumber = 1) => {
+    globalAudioManager.stopAll();
     setSelectedSurahNumber(surahNumber);
     setActiveTab('study');
   };
@@ -453,7 +472,7 @@ function MainApp() {
           className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF9F5]/95 dark:bg-[#090C14]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-zinc-800/80 px-2 py-1 shadow-lg transition-colors"
         >
           <div className="max-w-xl mx-auto flex items-center justify-around h-14 sm:h-16">
-            {/* Tab 1: Daily Sabaq (Home & Daily Queue) */}
+            {/* Tab 1: Today (Daily Lesson & Routine) */}
             <button
               type="button"
               onClick={() => setActiveTab('today')}
@@ -462,7 +481,7 @@ function MainApp() {
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
               }`}
-              aria-label="Daily Sabaq & Routine"
+              aria-label="Today - Daily Lesson & Dashboard"
             >
               <div
                 className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
@@ -473,10 +492,10 @@ function MainApp() {
               >
                 <Sun className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Sabaq</span>
+              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Today</span>
             </button>
 
-            {/* Tab 2: Mushaf (Quran Surahs, Recitations & Tafsir) */}
+            {/* Tab 2: Quran (Surahs, Recitations & Tafsir) */}
             <button
               type="button"
               onClick={() => setActiveTab('study')}
@@ -485,7 +504,7 @@ function MainApp() {
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
               }`}
-              aria-label="Mushaf & Quran Tafsir"
+              aria-label="Quran - Read, Listen & Tafsir"
             >
               <div
                 className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
@@ -496,15 +515,15 @@ function MainApp() {
               >
                 <BookOpen className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Mushaf</span>
+              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Quran</span>
             </button>
 
-            {/* Tab 3: PRACTICE */}
+            {/* Tab 3: Practice (Quizzes & Games) */}
             <button
               type="button"
               onClick={() => setActiveTab('games')}
               className="flex-1 h-full flex flex-col items-center justify-center py-0.5 px-0.5 group cursor-pointer"
-              aria-label="Quran Ayah Practice & Games"
+              aria-label="Practice - Quizzes & Games"
             >
               <div
                 className={`relative px-3 sm:px-3.5 py-1 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
@@ -526,7 +545,7 @@ function MainApp() {
               </span>
             </button>
 
-            {/* Tab 4: Hifz Tracker (Journey Map, Mastery Exams, SM-2) */}
+            {/* Tab 4: Progress (Journey Map, Mastery Exams, SM-2) */}
             <button
               type="button"
               onClick={() => {
@@ -538,7 +557,7 @@ function MainApp() {
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
               }`}
-              aria-label="Hifz Tracker & Retention"
+              aria-label="Progress - Hifz Tracker & Retention"
             >
               <div
                 className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
@@ -549,10 +568,10 @@ function MainApp() {
               >
                 <BarChart3 className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Tracker</span>
+              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Progress</span>
             </button>
 
-            {/* Tab 5: My Hifz (Niyyah, Target Plan, Audio & Profile) */}
+            {/* Tab 5: Profile (Plan, Niyyah, Preferences) */}
             <button
               type="button"
               onClick={() => setActiveTab('you')}
@@ -561,7 +580,7 @@ function MainApp() {
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
               }`}
-              aria-label="My Hifz, Niyyah & Preferences"
+              aria-label="Profile - My Plan, Intentions & Preferences"
             >
               <div
                 className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
@@ -572,7 +591,7 @@ function MainApp() {
               >
                 <User className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">My Hifz</span>
+              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Profile</span>
             </button>
           </div>
         </nav>

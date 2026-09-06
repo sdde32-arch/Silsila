@@ -30,7 +30,10 @@ export interface SurahContent {
   ayahs: AyahDetail[];
 }
 
+import { SURAH_78_CONTENT } from './surah78Data';
+
 export const SURAH_CONTENT_DB: Record<number, SurahContent> = {
+  78: SURAH_78_CONTENT,
   1: {
     number: 1,
     name: 'Al-Fatihah',
