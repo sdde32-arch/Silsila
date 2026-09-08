@@ -568,7 +568,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto flex flex-col justify-between min-h-[580px] pb-6 animate-in fade-in duration-300">
+    <div className="w-full max-w-md mx-auto flex flex-col justify-between min-h-[580px] pb-6 animate-in fade-in duration-300">
       {/* Top Header Bar */}
       <div className="space-y-3 px-1">
         <div className="flex items-center justify-between gap-3">
@@ -906,7 +906,7 @@ export const ExerciseCard: React.FC<ExtendedExerciseCardProps> = ({
         </Button>
       ) : (
         <div
-          className={`p-4 sm:p-5 rounded-3xl border animate-in slide-in-from-bottom-2 duration-200 flex flex-col sm:flex-row items-center justify-between gap-3 ${
+          className={`p-3.5 sm:p-4 rounded-2xl border animate-in slide-in-from-bottom-2 duration-200 flex flex-col sm:flex-row items-center justify-between gap-3 ${
             status === 'correct'
               ? 'bg-[#ECFDF5] border-[#10B981]/30 text-[#065F46]'
               : 'bg-[#FFF1F2] border-[#F43F5E]/30 text-[#9F1239]'

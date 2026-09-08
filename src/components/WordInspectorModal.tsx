@@ -248,7 +248,7 @@ export const WordInspectorModal: React.FC<WordInspectorModalProps> = ({
           )}
 
           <span
-            className="font-quran text-5xl sm:text-6xl font-bold text-slate-950 block leading-[2.2] tracking-wide select-text drop-shadow-xs dark:text-slate-100"
+            className="font-quran text-4xl sm:text-5xl font-bold text-slate-950 block leading-[2.2] tracking-wide select-text drop-shadow-xs dark:text-slate-100"
             dir="rtl"
           >
             {wordText}

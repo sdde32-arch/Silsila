@@ -230,68 +230,66 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
   return (
     <div className="w-full space-y-3.5 pb-2 overflow-x-hidden box-border animate-in fade-in duration-300">
-      {/* 1. GREETING & DATE HEADER */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2.5 px-0.5 pt-1">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-11 h-11 sm:w-10 sm:h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/80 p-1 flex items-center justify-center shrink-0 shadow-2xs">
-            <SilsilaEmblem className="w-8 h-8 sm:w-7 sm:h-7" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="font-black text-lg sm:text-xl text-slate-900 dark:text-slate-50 tracking-tight leading-tight truncate">
-              As-salamu alaykum, {userName}
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 sm:mt-0.5 flex items-center gap-1.5 flex-wrap">
-              <span className="font-bold text-slate-700 dark:text-slate-300">Today</span>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span className="text-emerald-800 dark:text-emerald-400 font-semibold">7 Safar 1448 AH</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Top-Right Pills: Hifz Points & Consistency / Grace */}
-        <div id="tour-hifz-points" data-tour="hifz-points" className="flex items-center gap-2 sm:gap-1.5 shrink-0 pl-14 sm:pl-0">
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-300 text-xs font-bold shrink-0 shadow-2xs"
-            title={`Hifz Points: ${progression.hifzPoints ?? 15} pts (Need min 5 pts to unlock new Ayahs. +10 for new Ayah drill, +1 for revision, -1 for lesson error, -3 for exam error)`}
-          >
-            <Sparkles className="w-3.5 h-3.5 fill-emerald-500 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>{progression.hifzPoints ?? 15} pts</span>
-          </div>
-
-          <button
-            onClick={() => setShowStreakModal(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/20 dark:hover:bg-amber-500/30 border border-amber-500/20 dark:border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs font-bold shrink-0 shadow-2xs transition-all cursor-pointer active:scale-95"
-            title="Daily Consistency & Grace System"
-          >
-            <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500 shrink-0" />
-            <span>{streakStats.currentStreak}d Consistency</span>
-          </button>
-        </div>
-      </header>
-
-      {/* PRIMARY NIYYAH / INTENTION */}
-      {primaryNiyyah && (
-        <div className="w-full relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-300">
-          <div className="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 pointer-events-none">
-            <Heart className="w-24 h-24" />
-          </div>
-          <div className="relative z-10 flex gap-3.5 items-start">
-            <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800">
-              <Heart className="w-4.5 h-4.5 fill-amber-500/20" />
+      {/* 1. GREETING & PROFILE HEADER CARD */}
+      <header className="rounded-2xl bg-white dark:bg-[#0E121B] border border-slate-200/90 dark:border-zinc-800/80 p-3.5 sm:p-4 shadow-2xs space-y-3">
+        {/* Top Row: Silsila Icon + User Greeting & Stats Badges */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Logo Squircle + Greeting */}
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Official Silsila App Icon Squircle */}
+            <div className="w-12 h-12 rounded-2xl bg-[#FAF6F0] dark:bg-[#151C2C] border border-amber-200/80 dark:border-amber-700/50 p-1 flex items-center justify-center shrink-0 shadow-2xs">
+              <SilsilaEmblem className="w-8 h-8" />
             </div>
-            <div>
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 mb-1">
-                Your Niyyah (Intention)
-              </div>
-              <p className="text-sm sm:text-base font-serif italic font-medium text-slate-800 dark:text-slate-200 leading-snug">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-black text-base sm:text-lg text-slate-900 dark:text-slate-50 tracking-tight leading-snug break-words">
+                As-salamu alaykum, {userName}
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Today</span>
+                <span className="text-slate-300 dark:text-slate-600">•</span>
+                <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                <span className="text-slate-300 dark:text-slate-600">•</span>
+                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">7 Safar 1448 AH</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Badges: Hifz Points & Consistency */}
+          <div id="tour-hifz-points" data-tour="hifz-points" className="flex items-center gap-2 shrink-0">
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-300 text-xs font-bold shrink-0 shadow-2xs whitespace-nowrap"
+              title={`Hifz Points: ${progression.hifzPoints ?? 15} pts`}
+            >
+              <Sparkles className="w-3.5 h-3.5 fill-emerald-500 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>{progression.hifzPoints ?? 15} pts</span>
+            </div>
+
+            <button
+              onClick={() => setShowStreakModal(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/20 dark:hover:bg-amber-500/30 border border-amber-500/20 dark:border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs font-bold shrink-0 shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+              title="Daily Consistency & Grace System"
+            >
+              <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500 shrink-0" />
+              <span>{streakStats.currentStreak}d Consistency</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Niyyah (Spiritual Intention Reminder) - Complete, fully readable, no ellipsis or cutoff */}
+        {primaryNiyyah && (
+          <div className="pt-2.5 border-t border-slate-100 dark:border-zinc-800/80 flex items-start gap-2.5">
+            <Heart className="w-3.5 h-3.5 text-amber-500/80 dark:text-amber-400 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700/80 dark:text-amber-400/80 block mb-0.5">
+                Daily Niyyah (Intention)
+              </span>
+              <p className="text-xs sm:text-[13px] font-serif italic text-slate-700 dark:text-slate-300 leading-relaxed break-words">
                 "{primaryNiyyah.intentionText}"
               </p>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </header>
 
       {/* 2. FEATURES & QUICK ACCESS ACCORDION EXTENSION (DROPS DOWN IN-LINE ON THE PAGE) */}
       <section className="rounded-2xl bg-white dark:bg-[#0E121B] border border-slate-200/90 dark:border-zinc-800/80 shadow-2xs overflow-hidden transition-all duration-200">

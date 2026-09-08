@@ -1,0 +1,38 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="silsilaGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EAA82C" />
+      <stop offset="50%" stop-color="#D99426" />
+      <stop offset="100%" stop-color="#BA7815" />
+    </linearGradient>
+    <linearGradient id="silsilaBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F6EF7" />
+      <stop offset="50%" stop-color="#3753DC" />
+      <stop offset="100%" stop-color="#283EB0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background squircle (soft ivory cream) -->
+  <rect width="200" height="200" rx="46" fill="#FAF6F0" />
+
+  <!-- Top diamond -->
+  <polygon points="100,24 109,34 100,44 91,34" fill="url(#silsilaGoldGrad)" />
+
+  <!-- Bottom diamond -->
+  <polygon points="100,126 109,136 100,146 91,136" fill="url(#silsilaGoldGrad)" />
+
+  <!-- Right link gold body -->
+  <path d="M 108,61 L 140,61 A 23,23 0 0,1 140,107 L 108,107" stroke="url(#silsilaGoldGrad)" stroke-width="13" stroke-linecap="round" fill="none" />
+
+  <!-- Blue interlocking curve -->
+  <path d="M 112,61 A 23,23 0 0,0 112,107" stroke="url(#silsilaBlueGrad)" stroke-width="13" stroke-linecap="round" fill="none" />
+
+  <!-- Left link gold loop -->
+  <path d="M 60,61 L 92,61 A 23,23 0 0,1 92,107 L 60,107 A 23,23 0 0,1 60,61 Z" stroke="url(#silsilaGoldGrad)" stroke-width="13" stroke-linecap="round" fill="none" />
+
+  <!-- Blue weave over left link bottom bar -->
+  <path d="M 96,96 A 23,23 0 0,0 112,107" stroke="url(#silsilaBlueGrad)" stroke-width="13" stroke-linecap="round" fill="none" />
+
+  <!-- Silsila Logotype -->
+  <text x="100" y="174" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700" fill="#0E1A34" letter-spacing="-0.5">Silsila</text>
+</svg>

@@ -173,6 +173,29 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
 
   // Word-by-word data
   const [wordsData, setWordsData] = useState<WordDetailData[]>(() => {
+    // If the ayah already has precise words from Quran.com, use them
+    if (lessonData.ayah.words && lessonData.ayah.words.length > 0) {
+      return lessonData.ayah.words.map((w: any, idx: number) => {
+        // Fallback to dynamic if translation is missing
+        const translation = w.translation || '';
+        return {
+          id: w.id || idx + 1,
+          wordNumber: idx + 1,
+          surahNumber: activeSurahNumber,
+          ayahNumber: activeAyahNumber,
+          arabic: w.arabic,
+          transliteration: w.transliteration || `Word ${idx + 1}`,
+          translation: translation,
+          audioUrl: `https://everyayah.com/data/translations/wbw/arabic/${String(activeSurahNumber).padStart(3, '0')}_${String(activeAyahNumber).padStart(3, '0')}_${String(idx + 1).padStart(3, '0')}.mp3`,
+          audioUrls: [`https://everyayah.com/data/translations/wbw/arabic/${String(activeSurahNumber).padStart(3, '0')}_${String(activeAyahNumber).padStart(3, '0')}_${String(idx + 1).padStart(3, '0')}.mp3`],
+          rootLetters: w.root || '',
+          grammarType: w.grammar || 'noun',
+          lettersBreakdown: [],
+        };
+      });
+    }
+    
+    // Otherwise fallback to generation
     return getAyahWordsData(
       activeSurahNumber,
       activeAyahNumber,
@@ -307,7 +330,25 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
       if (exactAyah) {
         const newLesson = generateAyahLesson(activeSurahNumber, activeAyahNumber, selectedReciter.subfolder, exactAyah);
         setLessonData(newLesson);
-        setWordsData(getAyahWordsData(activeSurahNumber, activeAyahNumber, exactAyah.arabic, exactAyah.translation));
+        // Set words using precise API words if available
+        if (exactAyah.words && exactAyah.words.length > 0) {
+          setWordsData(exactAyah.words.map((w: any, idx: number) => ({
+            id: w.id || idx + 1,
+            wordNumber: idx + 1,
+            surahNumber: activeSurahNumber,
+            ayahNumber: activeAyahNumber,
+            arabic: w.arabic,
+            transliteration: w.transliteration || `Word ${idx + 1}`,
+            translation: w.translation || '',
+            audioUrl: `https://everyayah.com/data/translations/wbw/arabic/${String(activeSurahNumber).padStart(3, '0')}_${String(activeAyahNumber).padStart(3, '0')}_${String(idx + 1).padStart(3, '0')}.mp3`,
+            audioUrls: [`https://everyayah.com/data/translations/wbw/arabic/${String(activeSurahNumber).padStart(3, '0')}_${String(activeAyahNumber).padStart(3, '0')}_${String(idx + 1).padStart(3, '0')}.mp3`],
+            rootLetters: w.root || '',
+            grammarType: w.grammar || 'noun',
+            lettersBreakdown: [],
+          })));
+        } else {
+          setWordsData(getAyahWordsData(activeSurahNumber, activeAyahNumber, exactAyah.arabic, exactAyah.translation));
+        }
       }
     });
     return () => {
@@ -380,7 +421,24 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
     setActiveSurahNumber(sNum);
     setActiveAyahNumber(aNum);
     setLessonData(newLesson);
-    setWordsData(getAyahWordsData(sNum, aNum, newLesson.ayah.arabic, newLesson.ayah.translation));
+    if (newLesson.ayah.words && newLesson.ayah.words.length > 0) {
+      setWordsData(newLesson.ayah.words.map((w: any, idx: number) => ({
+        id: w.id || idx + 1,
+        wordNumber: idx + 1,
+        surahNumber: sNum,
+        ayahNumber: aNum,
+        arabic: w.arabic,
+        transliteration: w.transliteration || `Word ${idx + 1}`,
+        translation: w.translation || '',
+        audioUrl: `https://everyayah.com/data/translations/wbw/arabic/${String(sNum).padStart(3, '0')}_${String(aNum).padStart(3, '0')}_${String(idx + 1).padStart(3, '0')}.mp3`,
+        audioUrls: [`https://everyayah.com/data/translations/wbw/arabic/${String(sNum).padStart(3, '0')}_${String(aNum).padStart(3, '0')}_${String(idx + 1).padStart(3, '0')}.mp3`],
+        rootLetters: w.root || '',
+        grammarType: w.grammar || 'noun',
+        lettersBreakdown: [],
+      })));
+    } else {
+      setWordsData(getAyahWordsData(sNum, aNum, newLesson.ayah.arabic, newLesson.ayah.translation));
+    }
     setCurrentStepIdx(0);
     setShadowingRoundsDone(0);
     setHasSelfRecited(false);
@@ -812,7 +870,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
       {/* 1. TOP COMPACT RESPONSIVE HEADER (Fits Single Screen on Android)          */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-2.5 sm:px-4 py-2 shadow-2xs">
-        <div className="max-w-xl mx-auto space-y-1.5">
+        <div className="max-w-md mx-auto space-y-1.5">
           {/* Main Top Row: Back, Title/Ayah badge, View Mode, Controls */}
           <div className="flex items-center justify-between gap-1.5">
             {/* Return Back Button */}
@@ -902,7 +960,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
 
           {/* Reciter Dropdown Picker */}
           {showReciterPicker && (
-            <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-xl space-y-1.5 animate-in fade-in">
+            <div className="p-2.5 rounded-2xl bg-white border border-slate-200 shadow-xl space-y-1.5 animate-in fade-in">
               <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
                 Select Reference Reciter:
               </span>
@@ -969,7 +1027,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
       {/* ========================================================================= */}
       {/* 2. MAIN WORKSPACE (Centered, Perfectly Sized for Android Viewports)        */}
       {/* ========================================================================= */}
-      <main className="max-w-xl mx-auto w-full px-2.5 sm:px-4 py-4 sm:py-8 flex-1 flex flex-col justify-center pb-24">
+      <main className="max-w-md mx-auto w-full px-2.5 sm:px-4 py-4 sm:py-8 flex-1 flex flex-col justify-center pb-24">
         {/* --------------------------------------------------------------------- */}
         {/* MODE A: 6-STEP IMMERSIVE DRILL LESSON                                 */}
         {/* --------------------------------------------------------------------- */}
@@ -1050,12 +1108,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                     </p>
                     <button
                       onClick={() => {
-                        if ('speechSynthesis' in window) {
-                           const utterance = new SpeechSynthesisUtterance(lessonData.ayah.translation);
-                           utterance.lang = 'en-US';
-                           window.speechSynthesis.cancel();
-                           window.speechSynthesis.speak(utterance);
-                        }
+                        playEnglishTranslationAudio(activeSurahNumber, activeAyahNumber, lessonData.ayah.translation);
                       }}
                       className="w-7 h-7 rounded-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-indigo-600 flex items-center justify-center cursor-pointer transition-colors"
                       title="Read Translation Aloud"
@@ -1128,20 +1181,20 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5" dir="rtl">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" dir="rtl">
                   {wordsData.map((w, idx) => (
                     <div
                       key={idx}
                       onClick={() => setSelectedWordForDrill(w)}
-                      className="p-3 rounded-2xl bg-white border border-slate-200 hover:border-amber-400 hover:shadow-xs transition-all cursor-pointer text-center space-y-1 group active:scale-98"
+                      className="p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-amber-400 hover:shadow-xs transition-all cursor-pointer text-center space-y-1 group active:scale-98"
                     >
-                      <span className="font-quran text-2xl text-slate-900 block group-hover:text-amber-800 transition-colors dark:text-slate-100">
+                      <span className="font-quran text-xl sm:text-2xl text-slate-900 block group-hover:text-amber-800 transition-colors dark:text-slate-100">
                         {w.arabic}
                       </span>
-                      <span className="text-xs text-amber-900 font-bold block truncate" dir="ltr">
+                      <span className="text-[10px] sm:text-[11px] text-amber-900 font-bold block truncate" dir="ltr">
                         {w.transliteration}
                       </span>
-                      <span className="text-[11px] text-slate-500 font-medium block truncate" dir="ltr">
+                      <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium block truncate" dir="ltr">
                         {w.translation}
                       </span>
                     </div>
@@ -1154,7 +1207,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             {currentStep.stepType === 'shadowing' && (
               <div className="space-y-3.5">
                 {/* Verse Card */}
-                <div className="p-4 sm:p-5 rounded-3xl bg-white border border-amber-900/10 shadow-2xs text-center space-y-3">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-amber-900/10 shadow-2xs text-center space-y-3">
                   <div className="flex items-center justify-center">
                     <span className="px-3 py-1 rounded-full bg-amber-100/80 border border-amber-300/60 text-amber-900 font-extrabold text-xs flex items-center gap-1.5 shadow-2xs">
                       <span>Verse {activeAyahNumber}</span>
@@ -1180,7 +1233,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                 </div>
 
                 {/* Shadowing Practice Station (No dead space, balanced layout) */}
-                <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#0E121B] border border-slate-200 dark:border-zinc-800/80 shadow-2xs space-y-4">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#0E121B] border border-slate-200 dark:border-zinc-800/80 shadow-2xs space-y-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 truncate">Audio Shadowing Station</h3>
@@ -1254,7 +1307,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             {currentStep.stepType === 'self-recitation' && (
               <div className="space-y-3.5">
                 {/* Verse Card with Peek State */}
-                <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#0E121B] border border-amber-900/10 dark:border-amber-900/30 shadow-2xs text-center space-y-3 relative overflow-hidden">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#0E121B] border border-amber-900/10 dark:border-amber-900/30 shadow-2xs text-center space-y-3 relative overflow-hidden">
                   <div className="flex items-center justify-center">
                     <span className="px-3 py-1 rounded-full bg-amber-100/80 dark:bg-amber-950/60 border border-amber-300/60 dark:border-amber-800/80 text-amber-900 dark:text-amber-300 font-extrabold text-xs flex items-center gap-1.5 shadow-2xs">
                       <span>Verse {activeAyahNumber}</span>
@@ -1293,7 +1346,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                 </div>
 
                 {/* Self-Recitation Controls */}
-                <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#0E121B] border border-slate-200 dark:border-zinc-800/80 shadow-2xs space-y-3.5">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#0E121B] border border-slate-200 dark:border-zinc-800/80 shadow-2xs space-y-3.5">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 truncate">Self-Guided Recitation</h3>
@@ -1369,7 +1422,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
                   </div>
 
                   {/* English Translation Display */}
-                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-2.5">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-2.5">
                     <p className="text-sm sm:text-base font-semibold text-slate-900 leading-relaxed max-w-xl mx-auto">
                       "{lessonData.ayah.translation}"
                     </p>
@@ -1479,7 +1532,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
               <div className="space-y-3.5">
                 {/* Fill-in-the-blank / 2-3 Letters Active Recall Drill */}
                 {currentStep.mechanic === 'fill_blank' && activeFillBlankData && (
-                  <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-3.5">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3.5">
                     {/* Header Controls */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
                       <span className={`px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1.5 ${
@@ -1654,7 +1707,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
 
                 {/* Full Blind Recall Drill (Harmonious Light/Warm Redesign) */}
                 {currentStep.mechanic === 'full_blind' && (
-                  <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs text-center space-y-4">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs text-center space-y-4">
                     <div className="flex items-center justify-center">
                       <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-extrabold text-xs">
                         Full Blind Recall Drill
@@ -1826,7 +1879,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
         {viewMode === 'ayah-completion' && (
           <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300 pb-20">
             {/* Top Celebration Header Card */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-white to-amber-500/10 border-2 border-emerald-400 shadow-sm space-y-3">
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-white to-amber-500/10 border-2 border-emerald-400 shadow-sm space-y-3">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shrink-0">
@@ -1863,7 +1916,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             </div>
 
             {/* Next Ayah Action Card (Moved to Top) */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-slate-950 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-0.5 text-center sm:text-left">
                 <p className="text-xs text-slate-400 font-semibold">Ready for your next verse?</p>
                 <p className="text-base font-black text-white">
@@ -1897,7 +1950,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             </div>
 
             {/* Completed Ayah with Vivid Interactive Tajweed */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-emerald-600" />
@@ -1926,7 +1979,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
               </div>
 
               {/* Tajweed Rendered Ayah Box */}
-              <div className="p-5 sm:p-7 rounded-2xl bg-emerald-50/30 border border-emerald-200/80 text-center space-y-3">
+              <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/30 border border-emerald-200/80 text-center space-y-3">
                 <InteractiveTajweedAyah
                   arabicText={completedAyahInfo?.arabic || lessonData.ayah.arabic}
                   fontSizePx={Math.max(28, arabicFontSizePx + 2)}
@@ -1970,7 +2023,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             </div>
 
             {/* Surah Progress Strip */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-700">
                   Surah {surahMeta.name} Progression: {surahStats.memorizedCount} of {surahMeta.totalAyahs} Ayahs
@@ -2025,7 +2078,7 @@ export const MemorizationLessonPage: React.FC<MemorizationLessonPageProps> = ({
             </div>
 
             {/* Monthly Milestone Roadmap: Remaining Months in Gray */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
