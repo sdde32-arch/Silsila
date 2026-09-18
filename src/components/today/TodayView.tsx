@@ -26,11 +26,18 @@ import {
 } from '../../services/memorizationEngine';
 import { ALL_114_SURAHS } from '../../data/quranMetadata';
 import { SURAH_CONTENT_DB, AyahDetail } from '../../data/quranVerses';
-import { getSurahCompleteData, cleanAuthenticTranslation } from '../../services/quranDataService';
+import {
+  getSurahCompleteData,
+  getAyahDetailFromCacheOrBundled,
+  cleanAuthenticTranslation,
+} from '../../services/quranDataService';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { getNiyyahEntries } from '../../services/niyyahService';
 import { SilsilaEmblem } from '../ui/SilsilaLogo';
 import { useAuth } from '../../context/AuthContext';
+import { useTajweed } from '../tajweed/TajweedProvider';
+import { getHijriDate } from '../../utils/islamicCalendar';
+import { VisualStreakCounter } from './VisualStreakCounter';
 
 export interface TodayViewProps {
   onStartLesson: (surahNumber?: number, ayahNumber?: number) => void;
@@ -56,6 +63,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
   onStartExerciseSequence,
 }) => {
   const { user } = useAuth();
+  const { annotateText } = useTajweed();
   const [showStreakModal, setShowStreakModal] = useState(false);
   useScrollLock(showStreakModal);
 
@@ -64,7 +72,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const [dailyQueue, setDailyQueue] = useState<DailyQueue>(() => getTodaysQueue());
   const [streakStats, setStreakStats] = useState<StreakStats>(() => getStreakStats());
   const [userPlan, setUserPlan] = useState(() => getUserPlan());
-  const [sabaqAyahDetail, setSabaqAyahDetail] = useState<AyahDetail | null>(null);
+  const [sabaqAyahDetail, setSabaqAyahDetail] = useState<AyahDetail | null>(() => {
+    const q = getTodaysQueue();
+    return (
+      SURAH_CONTENT_DB[q.sabaq.surahId]?.ayahs.find((a) => a.number === q.sabaq.ayahNumber) ||
+      getAyahDetailFromCacheOrBundled(q.sabaq.surahId, q.sabaq.ayahNumber) ||
+      null
+    );
+  });
 
   const refreshData = () => {
     const p = getUserProgression();
@@ -81,7 +96,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
     // Fetch accurate Arabic text & translation for active Sabaq
     const targetSurah = q.sabaq.surahId;
     const targetAyahNum = q.sabaq.ayahNumber;
-    const existing = SURAH_CONTENT_DB[targetSurah]?.ayahs.find((a) => a.number === targetAyahNum);
+    const existing =
+      SURAH_CONTENT_DB[targetSurah]?.ayahs.find((a) => a.number === targetAyahNum) ||
+      getAyahDetailFromCacheOrBundled(targetSurah, targetAyahNum);
+
     if (existing) {
       setSabaqAyahDetail(existing);
     } else {
@@ -210,15 +228,21 @@ export const TodayView: React.FC<TodayViewProps> = ({
         </div>
 
         {/* Clean Arabic Verse Preview */}
-        <div className="p-4 rounded-xl bg-[#FAF9F5] dark:bg-slate-850 border border-slate-200/60 dark:border-slate-800 space-y-2">
-          <p
-            className="font-quran text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 leading-[2.2] text-right"
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF9F5] dark:bg-slate-850 border border-slate-200/70 dark:border-slate-800 space-y-2.5">
+          <div
+            className="font-quran text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 leading-[2.4] text-right selection:bg-amber-200/50"
             dir="rtl"
           >
-            {sabaqAyahDetail?.arabic || '...'}
-          </p>
+            {sabaqAyahDetail?.arabic ? (
+              annotateText(sabaqAyahDetail.arabic)
+            ) : (
+              <span className="text-slate-400 dark:text-slate-500 font-sans text-sm animate-pulse">
+                Loading authentic Arabic text...
+              </span>
+            )}
+          </div>
           {sabaqAyahDetail?.translation && (
-            <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed pt-1.5 border-t border-slate-200/60 dark:border-slate-700">
+            <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed pt-2 border-t border-slate-200/60 dark:border-slate-750">
               {cleanAuthenticTranslation(sabaqAyahDetail.translation)}
             </p>
           )}

@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, auth, onAuthStateChanged, signOutUser, signInWithUsername as firebaseSignInWithUsername } from '../services/firebase';
+import {
+  User,
+  auth,
+  onAuthStateChanged,
+  signOutUser,
+  signInWithGooglePopup,
+  signInWithUsername as firebaseSignInWithUsername,
+} from '../services/firebase';
 import { MemorizationPlan } from '../types';
 import { isOnboardingCompleted, setOnboardingCompleted } from '../components/onboarding/OnboardingFlow';
 import { setActiveUserUid } from '../services/firestoreSync';
@@ -8,6 +15,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isNewUser: boolean;
+  signInWithGoogle: () => Promise<void>;
   signInWithUsername: (username: string, password?: string) => Promise<void>;
   signOut: () => Promise<void>;
   completeOnboarding: (plan: MemorizationPlan) => Promise<void>;
@@ -37,6 +45,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => unsubscribe();
   }, []);
 
+  const signInWithGoogle = async () => {
+    await signInWithGooglePopup();
+  };
+
   const signInWithUsername = async (username: string, password?: string) => {
     await firebaseSignInWithUsername(username, password);
   };
@@ -58,6 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user,
         loading,
         isNewUser,
+        signInWithGoogle,
         signInWithUsername,
         signOut,
         completeOnboarding,

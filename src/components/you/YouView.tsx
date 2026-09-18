@@ -21,6 +21,7 @@ import {
   Moon,
   Sun,
   Laptop,
+  LogOut,
 } from 'lucide-react';
 import {
   getUserPlan,
@@ -49,7 +50,7 @@ export interface YouViewProps {
 }
 
 export const YouView: React.FC<YouViewProps> = ({ onOpenPlanModal }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [userName, setUserName] = useState(() => user?.displayName || 'Seeker of Quran');
   const [userPlan, setUserPlan] = useState(() => getUserPlan());
   const [stats, setStats] = useState(() => getMemorizationStatsSummary());
@@ -136,18 +137,28 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenPlanModal }) => {
           </p>
         </div>
 
-        {user?.photoURL ? (
-          <img
-            src={user.photoURL}
-            alt={userName}
-            className="w-9 h-9 rounded-xl object-cover shadow-xs border border-indigo-200 dark:border-indigo-800"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
-            {userName.charAt(0).toUpperCase()}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {user?.photoURL ? (
+            <img
+              src={user.photoURL}
+              alt={userName}
+              className="w-9 h-9 rounded-xl object-cover shadow-xs border border-indigo-200 dark:border-indigo-800"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+          )}
+
+          <button
+            onClick={() => signOut()}
+            title="Sign out of account"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 hover:border-rose-200 transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
       </header>
 
       {/* 2. CURRENT PLAN SUMMARY (TAHFEEZ PATH CHOSEN AT ONBOARDING) */}
@@ -449,6 +460,23 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenPlanModal }) => {
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Replay Tour</span>
+          </button>
+        </div>
+
+        {/* Sign Out Account */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <span className="font-bold text-xs text-slate-900 dark:text-slate-100 block">Account Session</span>
+            <span className="text-[10.5px] text-slate-500 dark:text-slate-400">
+              {user?.email || 'Logged in user'}
+            </span>
+          </div>
+          <button
+            onClick={() => signOut()}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
           </button>
         </div>
 
