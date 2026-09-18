@@ -44,7 +44,7 @@ const TOUR_STOPS: TourStop[] = [
     id: 'bottom-nav',
     targetSelector: '[data-tour="bottom-nav"]',
     tab: 'today',
-    title: 'The Five Core Tabs',
+    title: 'The Four Core Tabs',
     badge: 'Step 1 of 4 • Navigation',
     badgeBg: 'bg-emerald-100 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-700',
     badgeText: 'text-emerald-950 dark:text-emerald-300',
@@ -52,7 +52,7 @@ const TOUR_STOPS: TourStop[] = [
     iconBg: 'bg-emerald-600 text-white',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
     description:
-      '• Today: Your daily lesson and spaced review queues.\n• Quran: Read and listen to all 114 Surahs with Tajweed and reciters.\n• Practice: Fun active recall games, quizzes, and quests.\n• Progress: Your complete 114-Surah roadmap, SM-2 retention curves, and Mastery Exams.\n• Profile: Spiritual Niyyah journal, target plan, and app preferences.',
+      '• Today: Your daily lesson, practice games card, and review queue.\n• Quran: Read and listen to all 114 Surahs with Tajweed and reciters.\n• Progress: Complete 114-Surah roadmap, SM-2 retention, and Mastery Exams.\n• Profile: Spiritual Niyyah journal, target plan, and app preferences.',
     tip: 'Tap any tab anytime to switch views freely with zero lost progress.',
   },
   {

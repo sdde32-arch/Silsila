@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+
+const content = `import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { SilsilaLogo } from '../ui/SilsilaLogo';
+import { SilsilaLogo } from '../SilsilaLogo';
 import { Cloud, Lock, User, ArrowRight, BookOpen, Layers, Sparkles } from 'lucide-react';
 
 export const SignInView: React.FC = () => {
@@ -162,3 +164,7 @@ export const SignInView: React.FC = () => {
     </div>
   );
 };
+`;
+
+fs.writeFileSync('src/components/auth/SignInView.tsx', content);
+console.log('patched SignInView.tsx');

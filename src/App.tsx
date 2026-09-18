@@ -338,9 +338,10 @@ function MainApp() {
           />
         )}
 
-        {/* TAB 3 (CENTER): ARCADE & GAMES ARENA (Active Recall Games, Quests, 114 Surah Map, Spaced Decks) */}
+        {/* TAB 3: ARCADE & GAMES ARENA (Active Recall Games, Quests, 114 Surah Map, Spaced Decks) */}
         {(activeTab === 'games' || activeTab === 'arcade') && (
           <PracticeGamesTabView
+            onBack={() => setActiveTab('today')}
             onStartLesson={handleStartLesson}
             onExploreSurah={handleExploreSurah}
             onOpenSpacedDeck={() => setIsSpacedReviewOpen(true)}
@@ -463,20 +464,20 @@ function MainApp() {
       )}
 
       {/* ========================================================================= */}
-      {/* 5 FLAT BOTTOM-NAV TABS: Today | Study | ARCADE (Center) | Progress | You   */}
+      {/* 4 FLAT BOTTOM-NAV TABS: Today | Quran | Progress | Profile               */}
       {/* ========================================================================= */}
       {activeTab !== 'exercise' && (
         <nav
           id="tour-bottom-nav"
           data-tour="bottom-nav"
-          className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF9F5]/95 dark:bg-[#090C14]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-zinc-800/80 px-2 py-1 shadow-lg transition-colors"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF9F5]/95 dark:bg-[#090C14]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-zinc-800/80 px-4 py-1.5 shadow-lg transition-colors"
         >
           <div className="max-w-xl mx-auto flex items-center justify-around h-14 sm:h-16">
             {/* Tab 1: Today (Daily Lesson & Routine) */}
             <button
               type="button"
               onClick={() => setActiveTab('today')}
-              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all active:scale-95 cursor-pointer ${
+              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-1 rounded-2xl transition-all active:scale-95 cursor-pointer ${
                 activeTab === 'today' || activeTab === 'dashboard' || activeTab === 'learn'
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
@@ -484,7 +485,7 @@ function MainApp() {
               aria-label="Today - Daily Lesson & Dashboard"
             >
               <div
-                className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
+                className={`px-3 py-1 rounded-full flex items-center justify-center transition-all ${
                   activeTab === 'today' || activeTab === 'dashboard' || activeTab === 'learn'
                     ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : ''
@@ -492,14 +493,14 @@ function MainApp() {
               >
                 <Sun className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Today</span>
+              <span className="text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Today</span>
             </button>
 
             {/* Tab 2: Quran (Surahs, Recitations & Tafsir) */}
             <button
               type="button"
               onClick={() => setActiveTab('study')}
-              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all active:scale-95 cursor-pointer ${
+              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-1 rounded-2xl transition-all active:scale-95 cursor-pointer ${
                 activeTab === 'study' || activeTab === 'explore' || activeTab === 'surahs'
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
@@ -507,7 +508,7 @@ function MainApp() {
               aria-label="Quran - Read, Listen & Tafsir"
             >
               <div
-                className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
+                className={`px-3 py-1 rounded-full flex items-center justify-center transition-all ${
                   activeTab === 'study' || activeTab === 'explore' || activeTab === 'surahs'
                     ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : ''
@@ -515,44 +516,17 @@ function MainApp() {
               >
                 <BookOpen className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Quran</span>
+              <span className="text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Quran</span>
             </button>
 
-            {/* Tab 3: Practice (Quizzes & Games) */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('games')}
-              className="flex-1 h-full flex flex-col items-center justify-center py-0.5 px-0.5 group cursor-pointer"
-              aria-label="Practice - Quizzes & Games"
-            >
-              <div
-                className={`relative px-3 sm:px-3.5 py-1 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
-                  activeTab === 'games' || activeTab === 'arcade'
-                    ? 'bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-600 text-slate-950 shadow-md shadow-amber-500/30 scale-105 ring-2 ring-amber-400/40'
-                    : 'bg-amber-100/80 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 group-hover:scale-105 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/60 shadow-2xs'
-                }`}
-              >
-                <Target className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${
-                  activeTab === 'games' || activeTab === 'arcade' ? 'stroke-[2.5]' : 'stroke-[2.2]'
-                }`} />
-              </div>
-              <span className={`text-[10px] sm:text-[10.5px] font-black tracking-tight mt-0.5 whitespace-nowrap transition-colors ${
-                activeTab === 'games' || activeTab === 'arcade'
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-amber-800 dark:text-amber-400/90 group-hover:text-amber-600'
-              }`}>
-                Practice
-              </span>
-            </button>
-
-            {/* Tab 4: Progress (Journey Map, Mastery Exams, SM-2) */}
+            {/* Tab 3: Progress (Journey Map, Mastery Exams, SM-2) */}
             <button
               type="button"
               onClick={() => {
                 setProgressSubTab('hifz-map');
                 setActiveTab('progress');
               }}
-              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all active:scale-95 cursor-pointer ${
+              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-1 rounded-2xl transition-all active:scale-95 cursor-pointer ${
                 activeTab === 'progress' || activeTab === 'stats' || activeTab === 'review' || activeTab === 'journey' || activeTab === 'hifz'
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
@@ -560,7 +534,7 @@ function MainApp() {
               aria-label="Progress - Hifz Tracker & Retention"
             >
               <div
-                className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
+                className={`px-3 py-1 rounded-full flex items-center justify-center transition-all ${
                   activeTab === 'progress' || activeTab === 'stats' || activeTab === 'review' || activeTab === 'journey' || activeTab === 'hifz'
                     ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : ''
@@ -568,14 +542,14 @@ function MainApp() {
               >
                 <BarChart3 className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Progress</span>
+              <span className="text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Progress</span>
             </button>
 
-            {/* Tab 5: Profile (Plan, Niyyah, Preferences) */}
+            {/* Tab 4: Profile (Plan, Niyyah, Preferences) */}
             <button
               type="button"
               onClick={() => setActiveTab('you')}
-              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all active:scale-95 cursor-pointer ${
+              className={`flex-1 h-full flex flex-col items-center justify-center py-1 px-1 rounded-2xl transition-all active:scale-95 cursor-pointer ${
                 activeTab === 'you' || activeTab === 'profile' || activeTab === 'settings'
                   ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold'
@@ -583,7 +557,7 @@ function MainApp() {
               aria-label="Profile - My Plan, Intentions & Preferences"
             >
               <div
-                className={`px-2.5 py-1 rounded-full flex items-center justify-center transition-all ${
+                className={`px-3 py-1 rounded-full flex items-center justify-center transition-all ${
                   activeTab === 'you' || activeTab === 'profile' || activeTab === 'settings'
                     ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : ''
@@ -591,7 +565,7 @@ function MainApp() {
               >
                 <User className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <span className="text-[10.5px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Profile</span>
+              <span className="text-[11px] tracking-tight mt-0.5 whitespace-nowrap">Profile</span>
             </button>
           </div>
         </nav>

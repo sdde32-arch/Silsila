@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+const fs = require('fs');
+
+const content = `import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, auth, onAuthStateChanged, signOutUser, signInWithUsername as firebaseSignInWithUsername } from '../services/firebase';
 import { MemorizationPlan } from '../types';
 import { isOnboardingCompleted, setOnboardingCompleted } from '../components/onboarding/OnboardingFlow';
@@ -76,3 +78,7 @@ export function useAuth(): AuthContextType {
   }
   return context;
 }
+`;
+
+fs.writeFileSync('src/context/AuthContext.tsx', content);
+console.log('patched AuthContext.tsx');

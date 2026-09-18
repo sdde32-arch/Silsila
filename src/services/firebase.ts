@@ -7,6 +7,8 @@ import {
   signInAnonymously,
   signOut,
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   User,
 } from 'firebase/auth';
 import {
@@ -72,6 +74,34 @@ export async function signInWithGooglePopup(): Promise<User> {
       console.warn('Popup blocked or closed. In iframe environments, please click the "Open in new tab" button at the top of the preview window to sign in with Google.');
     }
     throw err;
+  }
+}
+
+export async function signInWithUsername(username: string, password?: string): Promise<User> {
+  const email = `${username.toLowerCase().replace(/[^a-z0-9_.-]/g, '')}@tester.silsila.app`;
+  const pass = password && password.trim().length > 0 ? password : 'Silsila#OpenAccess123';
+  
+  try {
+    // Try to sign in first
+    const result = await signInWithEmailAndPassword(auth, email, pass);
+    return result.user;
+  } catch (error: any) {
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+      try {
+        // If user not found, try to register
+        const createResult = await createUserWithEmailAndPassword(auth, email, pass);
+        return createResult.user;
+      } catch (createError: any) {
+        if (createError.code === 'auth/email-already-in-use') {
+          throw new Error('Incorrect password for this username.');
+        }
+        throw createError;
+      }
+    }
+    if (error.code === 'auth/wrong-password') {
+      throw new Error('Incorrect password for this username.');
+    }
+    throw error;
   }
 }
 

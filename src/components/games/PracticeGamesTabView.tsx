@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  ArrowLeft,
   Gamepad2,
   Sparkles,
   Flame,
@@ -41,6 +42,7 @@ import { CatchTheAyatGame } from './CatchTheAyatGame';
 import { CoachMarkOverlay } from '../tour/CoachMarkOverlay';
 
 export interface PracticeGamesTabViewProps {
+  onBack?: () => void;
   onStartLesson: (surahNumber?: number, ayahNumber?: number) => void;
   onExploreSurah: (surahNumber?: number) => void;
   onOpenSpacedDeck: () => void;
@@ -49,6 +51,7 @@ export interface PracticeGamesTabViewProps {
 }
 
 export const PracticeGamesTabView: React.FC<PracticeGamesTabViewProps> = ({
+  onBack,
   onStartLesson,
   onExploreSurah,
   onOpenSpacedDeck,
@@ -131,6 +134,16 @@ export const PracticeGamesTabView: React.FC<PracticeGamesTabViewProps> = ({
 
   return (
     <div className="w-full max-w-xl mx-auto pb-24 pt-3 px-3.5 sm:px-4 space-y-4 animate-in fade-in duration-150 text-slate-900 dark:text-slate-100">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Home</span>
+        </button>
+      )}
+
       {/* 1. PRACTICE PLAYER HUD & GAMIFIED HEADER */}
       <header className="relative rounded-3xl bg-gradient-to-br from-slate-950 via-[#0B0F19] to-indigo-950 border border-indigo-500/20 text-white p-4 sm:p-5 shadow-xl overflow-hidden">
         {/* Glow ambient background orbs */}
